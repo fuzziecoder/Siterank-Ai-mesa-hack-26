@@ -285,12 +285,18 @@ export default function AnalyzePage() {
                   </div>
                   {industryInsights.industry && (
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">Industry:</span> {industryInsights.industry}
+                      <span className="font-medium text-foreground">Industry:</span>{' '}
+                      {typeof industryInsights.industry === 'string' 
+                        ? industryInsights.industry 
+                        : industryInsights.industry.category || industryInsights.industry.primary_segment || 'Detected'}
                     </p>
                   )}
                   {industryInsights.market_position && (
                     <p className="text-sm text-muted-foreground mt-1">
-                      <span className="font-medium text-foreground">Position:</span> {industryInsights.market_position}
+                      <span className="font-medium text-foreground">Position:</span>{' '}
+                      {typeof industryInsights.market_position === 'string'
+                        ? industryInsights.market_position
+                        : Object.entries(industryInsights.market_position)[0]?.[1]?.slice(0, 150) + '...' || 'Analysis available'}
                     </p>
                   )}
                 </div>
