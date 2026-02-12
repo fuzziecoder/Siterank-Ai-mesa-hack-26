@@ -130,7 +130,7 @@ export const Navbar = () => {
           <div className="flex items-center justify-between h-20">
             {/* Logo - Increased size */}
             <Link to="/" className="flex items-center gap-4" data-testid="logo-link">
-              <Logo size="xl" circular />
+              <Logo size="2xl" />
               <span className="font-bold text-xl tracking-tight hidden sm:block" style={{ fontFamily: "'Zen Dots', cursive" }}>
                 <ShinyText 
                   text="SITERANK AI" 
@@ -182,7 +182,7 @@ export const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   <Link to="/analyze" className="hidden sm:block">
-                    <Button size="sm" className="rounded-full gap-2 bg-gray-700 hover:bg-gray-600" data-testid="new-analysis-btn">
+                    <Button size="sm" className="rounded-full gap-2 bg-emerald-600 hover:bg-emerald-500 text-white" data-testid="new-analysis-btn">
                       <Plus className="w-4 h-4" />
                       New Analysis
                     </Button>

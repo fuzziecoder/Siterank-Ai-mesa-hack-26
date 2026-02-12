@@ -506,6 +506,41 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
+# ==================== Competitor Detection ====================
+
+@api_router.post("/competitors/detect", response_model=CompetitorDetectResponse)
+async def detect_competitors_endpoint(
+    request: CompetitorDetectRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Auto-detect competitors for a given website using AI"""
+    if not request.user_site_url:
+        raise HTTPException(status_code=400, detail="User site URL is required")
+    
+    try:
+        # Detect competitors using AI
+        competitors = await detect_competitors(
+            request.user_site_url,
+            request.industry_hint
+        )
+        
+        # Optionally get industry insights
+        industry_insights = None
+        if competitors:
+            industry_insights = await get_industry_insights(
+                request.user_site_url,
+                competitors
+            )
+        
+        return CompetitorDetectResponse(
+            competitors=competitors,
+            industry_insights=industry_insights
+        )
+    except Exception as e:
+        logger.error(f"Competitor detection failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to detect competitors: {str(e)}")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
