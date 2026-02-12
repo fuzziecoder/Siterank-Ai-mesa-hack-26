@@ -410,7 +410,7 @@ export default function AnalysisResultPage() {
         </div>
 
         {/* Overall Score Card */}
-        <Card className="mb-8" data-testid="overall-score-card">
+        <Card className="mb-8 bg-card border-border" data-testid="overall-score-card">
           <CardContent className="p-6">
             <div className="grid md:grid-cols-5 gap-6 items-center">
               {/* Main Score */}
