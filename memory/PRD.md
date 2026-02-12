@@ -25,12 +25,13 @@ Build an AI Website Competitor Analyzer where business owners can:
 - `/app/backend/analyzer.py` - Score calculation engine
 - `/app/backend/llm_engine.py` - GPT-5.2 integration for AI suggestions
 - `/app/backend/auth.py` - JWT authentication
+- `/app/backend/competitor_detector.py` - AI-powered competitor auto-detection
 
 ### Frontend (React + Tailwind CSS)
 - Landing page with hero section
 - Auth pages (login/register)
 - Dashboard with stats overview
-- Analysis creation page
+- Analysis creation page with auto-detect competitors feature
 - Analysis results with charts (Recharts)
 - History page with search/delete
 
@@ -48,8 +49,9 @@ Build an AI Website Competitor Analyzer where business owners can:
 - [x] AI-powered improvement suggestions (GPT-5.2)
 - [x] Action plan generation
 - [x] Report download (text format)
+- [x] **NEW: Auto-detect competitors using AI**
 
-## What's Been Implemented (Jan 2026)
+## What's Been Implemented (Feb 2026)
 
 ### Backend
 - FastAPI server with JWT authentication (7-day token expiry)
@@ -63,12 +65,18 @@ Build an AI Website Competitor Analyzer where business owners can:
 - GPT-5.2 integration via emergentintegrations library
 - Background task processing for analyses
 - Report download endpoint
+- **NEW: Auto-detect competitors API (`POST /api/competitors/detect`)**
+- **NEW: Industry insights generation**
 
 ### Frontend
 - Landing page with hero, features, how-it-works sections
 - User registration and login
 - Dashboard with stats (total, completed, avg/best scores)
 - New analysis form with URL validation
+- **NEW: Auto-detect competitors button**
+- **NEW: Industry insights display (green-tinted box)**
+- **NEW: Emerald green button colors**
+- **NEW: Larger logo (80x80px) without circular wrapper**
 - Analysis results page with:
   - Overall score display
   - Bar chart comparison (Recharts)
@@ -78,6 +86,27 @@ Build an AI Website Competitor Analyzer where business owners can:
   - Details tab with metric breakdowns
 - History page with search and delete functionality
 
+### UI Components
+- `/app/frontend/src/components/Logo.js` - Updated logo (larger, no circle)
+- `/app/frontend/src/components/StarBorder.js` - New animated border component (created, not yet integrated)
+- `/app/frontend/src/components/ShinyText.js` - Brand text effect
+- `/app/frontend/src/components/Navbar.js` - Navigation with dropdown menus
+
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Login user |
+| GET | `/api/auth/me` | Get current user |
+| POST | `/api/analyses` | Create new analysis |
+| GET | `/api/analyses` | List user analyses |
+| GET | `/api/analyses/{id}` | Get specific analysis |
+| DELETE | `/api/analyses/{id}` | Delete analysis |
+| GET | `/api/analyses/{id}/report` | Download report |
+| GET | `/api/dashboard/stats` | Get dashboard stats |
+| **POST** | **`/api/competitors/detect`** | **Auto-detect competitors (NEW)** |
+
 ## Prioritized Backlog
 
 ### P0 (Critical) - DONE
@@ -85,25 +114,35 @@ Build an AI Website Competitor Analyzer where business owners can:
 - [x] Website analysis core flow
 - [x] Score comparison
 - [x] AI suggestions
+- [x] Auto-detect competitors
 
 ### P1 (Important)
 - [ ] PDF report generation (currently text format)
-- [ ] Analysis re-run capability
 - [ ] Improved error handling for scraping failures
+- [ ] "AI Growth Advisor" - proactive strategic advice based on competitor trends
+- [ ] Functional navigation links (Blog, Documentation, Support pages)
 
 ### P2 (Nice to Have)
 - [ ] Dashboard charts showing score trends over time
 - [ ] Email notifications when analysis completes
 - [ ] Export analysis data to CSV
 - [ ] Compare specific pages (not just homepages)
+- [ ] Light/Dark mode toggle
+- [ ] User settings page
 
 ### P3 (Future)
 - [ ] Continuous monitoring (SaaS feature)
 - [ ] Weekly AI strategy reports
 - [ ] Auto improvement checklist tracking
+- [ ] Integrate StarBorder component into key buttons
+
+## Testing Status
+- Backend: 100% pass rate (20 tests)
+- Frontend: 100% pass rate (UI verification)
+- Test report: `/app/test_reports/iteration_3.json`
 
 ## Next Tasks
 1. Consider adding PDF report generation using a library like reportlab
-2. Add re-analyze button to run analysis again with latest data
-3. Implement better error states for failed competitor scrapes
+2. Implement "AI Growth Advisor" feature for proactive advice
+3. Create basic pages for navigation links (Blog, Documentation, Support)
 4. Add loading skeletons for better perceived performance
