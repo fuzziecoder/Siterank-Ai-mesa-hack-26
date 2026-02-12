@@ -2,16 +2,17 @@ import { cn } from '../lib/utils';
 
 export const Logo = ({ className, size = 'default', circular = false }) => {
   const sizes = {
-    sm: 'w-6 h-6',
-    default: 'w-8 h-8',
-    lg: 'w-10 h-10',
-    xl: 'w-12 h-12'
+    sm: 'w-8 h-8',
+    default: 'w-10 h-10',
+    lg: 'w-12 h-12',
+    xl: 'w-14 h-14',
+    '2xl': 'w-16 h-16'
   };
 
   if (circular) {
     return (
       <div className={cn(
-        "rounded-full overflow-hidden bg-gradient-to-br from-gray-600 to-gray-800 p-0.5",
+        "rounded-full overflow-hidden bg-gradient-to-br from-gray-500 to-gray-700 p-[2px]",
         sizes[size],
         className
       )}>
