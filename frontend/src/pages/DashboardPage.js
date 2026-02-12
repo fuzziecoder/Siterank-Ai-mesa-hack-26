@@ -7,6 +7,9 @@ import {
   BarChart3, TrendingUp, History, Plus, 
   ArrowRight, Loader2, AlertCircle, CheckCircle2, Clock
 } from 'lucide-react';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart
+} from 'recharts';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -26,7 +29,7 @@ export default function DashboardPage() {
     try {
       const [statsRes, analysesRes] = await Promise.all([
         axios.get(`${API_URL}/api/dashboard/stats`, { headers: getAuthHeader() }),
-        axios.get(`${API_URL}/api/analyses?limit=5`, { headers: getAuthHeader() })
+        axios.get(`${API_URL}/api/analyses?limit=10`, { headers: getAuthHeader() })
       ]);
       setStats(statsRes.data);
       setRecentAnalyses(analysesRes.data);
@@ -57,6 +60,17 @@ export default function DashboardPage() {
       </span>
     );
   };
+
+  // Prepare chart data from recent analyses
+  const chartData = recentAnalyses
+    .filter(a => a.status === 'completed' && a.overall_score > 0)
+    .slice(0, 7)
+    .reverse()
+    .map((a, index) => ({
+      name: new Date(a.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      score: a.overall_score,
+      url: a.user_site_url
+    }));
 
   if (loading) {
     return (
@@ -146,6 +160,59 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+        {/* Score Trend Chart */}
+        {chartData.length > 1 && (
+          <Card className="mb-8" data-testid="score-trend-chart">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-primary" />
+                Score Trend
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartData}>
+                    <defs>
+                      <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      className="text-muted-foreground"
+                    />
+                    <YAxis 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 12 }}
+                      className="text-muted-foreground"
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                      formatter={(value, name) => [value, 'Score']}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="score" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      fill="url(#scoreGradient)"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Recent Analyses */}
         <Card data-testid="recent-analyses">
           <CardHeader className="flex flex-row items-center justify-between">
@@ -174,7 +241,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {recentAnalyses.map((analysis) => (
+                {recentAnalyses.slice(0, 5).map((analysis) => (
                   <Link 
                     key={analysis.id}
                     to={`/analysis/${analysis.id}`}
