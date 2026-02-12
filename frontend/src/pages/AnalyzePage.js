@@ -57,6 +57,37 @@ export default function AnalyzePage() {
     }
   };
 
+  const handleAutoDetect = async () => {
+    if (!validateUrl(userSiteUrl)) {
+      setErrors({ userSite: 'Please enter a valid URL first' });
+      toast.error('Enter your website URL first to auto-detect competitors');
+      return;
+    }
+
+    setAutoDetecting(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/competitors/detect`,
+        { user_site_url: userSiteUrl },
+        { headers: getAuthHeader() }
+      );
+
+      const detectedCompetitors = response.data.competitors;
+      if (detectedCompetitors && detectedCompetitors.length > 0) {
+        setCompetitorUrls(detectedCompetitors);
+        setIndustryInsights(response.data.industry_insights);
+        toast.success(`Found ${detectedCompetitors.length} competitors!`);
+      } else {
+        toast.info('No competitors found. Try adding them manually.');
+      }
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Failed to auto-detect competitors';
+      toast.error(message);
+    } finally {
+      setAutoDetecting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
