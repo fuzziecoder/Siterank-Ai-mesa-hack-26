@@ -22,7 +22,6 @@ export default function AnalyzePage() {
   const validateUrl = (url) => {
     if (!url) return false;
     try {
-      // Allow URLs without protocol
       const urlToTest = url.startsWith('http') ? url : `https://${url}`;
       new URL(urlToTest);
       return true;
@@ -47,7 +46,6 @@ export default function AnalyzePage() {
     newUrls[index] = value;
     setCompetitorUrls(newUrls);
     
-    // Clear error when user types
     if (errors[`competitor_${index}`]) {
       setErrors(prev => {
         const newErrors = { ...prev };
@@ -60,7 +58,6 @@ export default function AnalyzePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate
     const newErrors = {};
     if (!validateUrl(userSiteUrl)) {
       newErrors.userSite = 'Please enter a valid URL';
@@ -105,10 +102,10 @@ export default function AnalyzePage() {
   };
 
   return (
-    <div className="min-h-screen" data-testid="analyze-page">
+    <div className="min-h-screen bg-background" data-testid="analyze-page">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             New Website Analysis
           </h1>
           <p className="text-muted-foreground mt-2">
@@ -118,19 +115,19 @@ export default function AnalyzePage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Your Website */}
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Globe className="w-5 h-5 text-primary" />
+              <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                <Globe className="w-5 h-5 text-gray-400" />
                 Your Website
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-muted-foreground">
                 Enter the URL of the website you want to analyze
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <Label htmlFor="userSite">Website URL</Label>
+                <Label htmlFor="userSite" className="text-muted-foreground">Website URL</Label>
                 <Input
                   id="userSite"
                   type="text"
@@ -143,7 +140,7 @@ export default function AnalyzePage() {
                     }
                   }}
                   disabled={loading}
-                  className={errors.userSite ? 'border-destructive' : ''}
+                  className={`bg-muted border-border ${errors.userSite ? 'border-destructive' : ''}`}
                   data-testid="user-site-input"
                 />
                 {errors.userSite && (
@@ -157,13 +154,13 @@ export default function AnalyzePage() {
           </Card>
 
           {/* Competitor Websites */}
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2 text-foreground">
                 <Globe className="w-5 h-5 text-muted-foreground" />
                 Competitor Websites
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-muted-foreground">
                 Add up to 5 competitor websites to compare against (at least 1 required)
               </CardDescription>
             </CardHeader>
@@ -177,7 +174,7 @@ export default function AnalyzePage() {
                       value={url}
                       onChange={(e) => updateCompetitor(index, e.target.value)}
                       disabled={loading}
-                      className={errors[`competitor_${index}`] ? 'border-destructive' : ''}
+                      className={`bg-muted border-border ${errors[`competitor_${index}`] ? 'border-destructive' : ''}`}
                       data-testid={`competitor-input-${index}`}
                     />
                     {errors[`competitor_${index}`] && (
@@ -213,7 +210,7 @@ export default function AnalyzePage() {
                   size="sm"
                   onClick={addCompetitor}
                   disabled={loading}
-                  className="w-full"
+                  className="w-full border-border"
                   data-testid="add-competitor-btn"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -230,6 +227,7 @@ export default function AnalyzePage() {
               variant="outline"
               onClick={() => navigate('/dashboard')}
               disabled={loading}
+              className="border-border"
             >
               Cancel
             </Button>
@@ -252,24 +250,24 @@ export default function AnalyzePage() {
         </form>
 
         {/* Info Card */}
-        <Card className="mt-8 bg-muted/30">
+        <Card className="mt-8 bg-accent/30 border-border">
           <CardContent className="p-6">
-            <h3 className="font-semibold mb-2">What we analyze:</h3>
+            <h3 className="font-semibold mb-2 text-foreground">What we analyze:</h3>
             <ul className="grid sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                 SEO: Meta tags, headings, structured data
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                 Speed: Load time, page size, optimization
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                 Content: Word count, readability, structure
               </li>
               <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
                 UX: Mobile-friendliness, accessibility
               </li>
             </ul>
