@@ -39,8 +39,8 @@ export const Navbar = () => {
               <ShinyText 
                 text="SITERANK AI" 
                 speed={3} 
-                color="#0055FF" 
-                shineColor="#60a5fa"
+                color="#9ca3af" 
+                shineColor="#e5e7eb"
                 spread={100}
               />
             </span>
@@ -86,8 +86,8 @@ export const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-full" data-testid="user-menu-btn">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <User className="w-4 h-4 text-primary" />
+                      <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                        <User className="w-4 h-4 text-muted-foreground" />
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
