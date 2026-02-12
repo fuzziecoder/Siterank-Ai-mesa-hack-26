@@ -56,7 +56,7 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md bg-card border-border">
         <CardHeader className="text-center space-y-4">
           <Link to="/" className="inline-flex items-center justify-center gap-3">
-            <Logo size="lg" />
+            <Logo size="xl" circular />
             <span style={{ fontFamily: "'Zen Dots', cursive" }}>
               <ShinyText text="SITERANK AI" speed={3} color="#9ca3af" shineColor="#e5e7eb" spread={80} />
             </span>
