@@ -1,16 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
+import { Button } from './ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../components/ui/dropdown-menu';
-import { Search, BarChart3, History, LogOut, User, Menu, X } from 'lucide-react';
+} from './ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from './ui/sheet';
+import { Search, BarChart3, History, LogOut, User, Menu } from 'lucide-react';
 import { useState } from 'react';
 import ShinyText from './ShinyText';
+import Logo from './Logo';
 
 export const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -23,14 +29,12 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 glass border-b border-border" data-testid="navbar">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border" data-testid="navbar">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2" data-testid="logo-link">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-              <BarChart3 className="w-5 h-5 text-primary-foreground" />
-            </div>
+          <Link to="/" className="flex items-center gap-3" data-testid="logo-link">
+            <Logo size="default" />
             <span className="font-bold text-lg tracking-tight hidden sm:block" style={{ fontFamily: "'Zen Dots', cursive" }}>
               <ShinyText 
                 text="SITERANK AI" 
@@ -108,6 +112,40 @@ export const Navbar = () => {
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+
+                {/* Mobile menu */}
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                  <SheetTrigger asChild className="md:hidden">
+                    <Button variant="ghost" size="icon" data-testid="mobile-menu-btn">
+                      <Menu className="w-5 h-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-64">
+                    <div className="flex flex-col gap-4 mt-8">
+                      <Link 
+                        to="/dashboard" 
+                        className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link 
+                        to="/analyze" 
+                        className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        New Analysis
+                      </Link>
+                      <Link 
+                        to="/history" 
+                        className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        History
+                      </Link>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </>
             ) : (
               <div className="flex items-center gap-2">
@@ -119,50 +157,8 @@ export const Navbar = () => {
                 </Link>
               </div>
             )}
-
-            {/* Mobile menu button */}
-            {isAuthenticated && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                data-testid="mobile-menu-btn"
-              >
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-            )}
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isAuthenticated && mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col gap-2">
-              <Link 
-                to="/dashboard" 
-                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-              <Link 
-                to="/analyze" 
-                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                New Analysis
-              </Link>
-              <Link 
-                to="/history" 
-                className="px-4 py-2 text-sm font-medium hover:bg-muted rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                History
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
     </nav>
   );
