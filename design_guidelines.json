@@ -1,0 +1,151 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Creative Designer (Top 1%)",
+    "principles": [
+      "Fusion over Imitation",
+      "Emotion First",
+      "Content is King",
+      "Zoom In",
+      "Negative Space",
+      "Contrast"
+    ]
+  },
+  "project_context": {
+    "app_name": "AI Website Competitor Analyzer",
+    "type": "SaaS Dashboard",
+    "target_audience": "Business Owners, Marketers, SEO Professionals",
+    "emotional_tone": "Professional, Authoritative, Insightful, Efficient",
+    "visual_archetype": "Archetype 4: Swiss & High-Contrast (Adapted for SaaS)"
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Manrope",
+        "weights": ["600", "700", "800"],
+        "usage": "Main headings, Section titles, KPI values",
+        "fallback": "sans-serif"
+      },
+      "body": {
+        "family": "Public Sans",
+        "weights": ["400", "500"],
+        "usage": "Paragraphs, UI labels, Form inputs",
+        "fallback": "sans-serif"
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "weights": ["400", "500"],
+        "usage": "Code snippets, Data tables, Technical metrics",
+        "fallback": "monospace"
+      }
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight",
+      "Overlines/Labels must be Uppercase + tracking-widest + text-xs",
+      "Line height: leading-none for headers, leading-relaxed for body",
+      "Never use Inter for Headings"
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "main": "#0055FF",
+        "hover": "#0044CC",
+        "foreground": "#FFFFFF",
+        "description": "International Klein Blue variant - High Energy & Trust"
+      },
+      "background": {
+        "default": "#F8FAFC",
+        "paper": "#FFFFFF",
+        "dark": "#0F172A"
+      },
+      "text": {
+        "primary": "#0F172A",
+        "secondary": "#64748B",
+        "muted": "#94A3B8"
+      },
+      "functional": {
+        "success": "#10B981",
+        "warning": "#F59E0B",
+        "error": "#EF4444",
+        "info": "#3B82F6"
+      }
+    },
+    "rules": [
+      "Never use pure black (#000000). Use Slate-900 (#0F172A)",
+      "Primary color ONLY for main CTAs and active states",
+      "Text on colored backgrounds must meet APCA contrast standards",
+      "Gradients: Subtle noise/grain only, no full-screen smooth gradients"
+    ]
+  },
+  "layout": {
+    "spacing_scale": "Tailwind Scale (p-1 to p-64)",
+    "container_padding": "px-4 md:px-8 lg:px-12",
+    "grids": {
+      "marketing": {
+        "name": "Tetris Grid (Mode A)",
+        "columns": "grid-cols-1 md:grid-cols-12",
+        "gap": "gap-8 lg:gap-12",
+        "rules": "Asymmetry is key. Mix col-span-8 (Hero) with col-span-4 (Detail)."
+      },
+      "dashboard": {
+        "name": "High Density Grid (Mode B)",
+        "columns": "grid-cols-1 md:grid-cols-4",
+        "gap": "gap-4 or gap-6",
+        "rules": "Dense packing. Widgets must stretch (h-full). No jagged bottoms."
+      }
+    }
+  },
+  "components": {
+    "library": "shadcn/ui",
+    "customization_rules": [
+      "Border Radius: rounded-lg (0.5rem) for cards, rounded-full for buttons",
+      "Shadows: shadow-sm for cards, shadow-md for hover states",
+      "Borders: 1px solid border-slate-200 (Light) / border-slate-800 (Dark)",
+      "Glassmorphism: bg-white/80 backdrop-blur-md (Light) for sticky headers/overlays. NEVER transparent."
+    ],
+    "specific_overrides": {
+      "Card": "Flat style, 1px border, no shadow by default. Hover: lift + shadow.",
+      "Button": "Pill-shaped or slightly rounded (rounded-md). High contrast.",
+      "Input": "bg-white border-slate-200 focus:ring-2 focus:ring-primary/20"
+    }
+  },
+  "visual_enhancers": {
+    "textures": "Subtle noise overlay on solid backgrounds to prevent 'digital flatness'",
+    "motion": {
+      "library": "framer-motion",
+      "types": [
+        "Hover: scale-105 or lift",
+        "Entrance: Staggered fade-in-up",
+        "Transition: smooth ease-out (0.2s)"
+      ],
+      "accessibility": "Respect prefers-reduced-motion"
+    },
+    "icons": "lucide-react (Clean, consistent strokes)"
+  },
+  "images": {
+    "hero_background": {
+      "url": "https://images.unsplash.com/photo-1768330187404-59e46cf222c9?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Abstract blue grid data visualization",
+      "usage": "Landing page hero background with overlay"
+    },
+    "features_team": {
+      "url": "https://images.unsplash.com/photo-1695891689981-0be360e84d3f?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Two professionals analyzing data at a desk",
+      "usage": "Features section or 'About' area to show human element"
+    },
+    "placeholders": {
+      "chart": "Use Recharts for actual data visualization. Do not use static images for charts in dashboard."
+    }
+  },
+  "universal_guidelines": [
+    "All interactive elements MUST include data-testid attribute (kebab-case)",
+    "Do not use 'transition: all'. Animate specific properties.",
+    "Do not center align the app container globally.",
+    "Use 'sonner' for toast notifications.",
+    "Export components as named exports, Pages as default exports.",
+    "File extensions: Use .js and .jsx (Project is JS-based).",
+    "Ensure Dark Mode support via 'dark' class strategy in Tailwind."
+  ],
+  "instructions_to_main_agent": "Follow the 'Swiss & High-Contrast' archetype. Prioritize data clarity. Use the provided image URLs for the landing page. Build the dashboard using the 'High Density' grid strategy. Ensure all text has sufficient contrast. Use Shadcn components for interactive elements but style them to match the 'Manrope/Public Sans' typography system."
+}
