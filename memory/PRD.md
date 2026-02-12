@@ -1,4 +1,4 @@
-# AI Website Competitor Analyzer - PRD
+# SITERANK AI - PRD
 
 ## Original Problem Statement
 Build an AI Website Competitor Analyzer where business owners can:
@@ -13,6 +13,7 @@ Build an AI Website Competitor Analyzer where business owners can:
 - Scraping: BeautifulSoup (basic, lighter)
 - Performance Metrics: Built-in estimation
 - Authentication: JWT-based (email/password)
+- Branding: SITERANK AI with hexagonal cube logo
 - No SaaS scaling features (monitoring, weekly reports)
 
 ## Architecture
