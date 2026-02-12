@@ -638,10 +638,10 @@ export default function AnalysisResultPage() {
               </Card>
 
               {/* Speed Details */}
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Zap className="w-5 h-5" />
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                    <Zap className="w-5 h-5 text-gray-400" />
                     Speed Details
                   </CardTitle>
                 </CardHeader>
