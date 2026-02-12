@@ -516,16 +516,16 @@ export default function AnalysisResultPage() {
             </div>
 
             {/* Competitor Cards */}
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg">Competitor Breakdown</CardTitle>
+                <CardTitle className="text-lg text-foreground">Competitor Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {analysis.competitors.map((comp, index) => (
                     <div 
                       key={index}
-                      className="p-4 rounded-lg border bg-muted/30"
+                      className="p-4 rounded-lg border border-border bg-muted"
                       data-testid={`competitor-card-${index}`}
                     >
                       <div className="flex flex-col sm:flex-row justify-between gap-4">
