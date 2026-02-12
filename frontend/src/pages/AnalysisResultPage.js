@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,12 +8,13 @@ import { Progress } from '../components/ui/progress';
 import { 
   Loader2, Download, ArrowLeft, CheckCircle2, 
   AlertCircle, TrendingUp, TrendingDown, Minus,
-  Globe, Zap, FileText, Layout, RefreshCw
+  Globe, Zap, FileText, Layout, RefreshCw, RotateCcw
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
 } from 'recharts';
+import { jsPDF } from 'jspdf';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -21,10 +22,12 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function AnalysisResultPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { getAuthHeader } = useAuth();
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
+  const [reanalyzing, setReanalyzing] = useState(false);
 
   useEffect(() => {
     fetchAnalysis();
@@ -61,29 +64,168 @@ export default function AnalysisResultPage() {
     }
   };
 
-  const downloadReport = async () => {
+  const handleReanalyze = async () => {
+    setReanalyzing(true);
+    try {
+      const competitorUrls = analysis.competitors.map(c => c.url);
+      const response = await axios.post(
+        `${API_URL}/api/analyses`,
+        {
+          user_site_url: analysis.user_site_url,
+          competitor_urls: competitorUrls
+        },
+        { headers: getAuthHeader() }
+      );
+      toast.success('New analysis started!');
+      navigate(`/analysis/${response.data.id}`);
+    } catch (error) {
+      toast.error('Failed to start re-analysis');
+    } finally {
+      setReanalyzing(false);
+    }
+  };
+
+  const downloadPdfReport = () => {
+    if (!analysis || analysis.status !== 'completed') return;
+    
     setDownloading(true);
     try {
-      const response = await axios.get(
-        `${API_URL}/api/analyses/${id}/report`,
-        { 
-          headers: getAuthHeader(),
-          responseType: 'blob'
-        }
-      );
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `analysis_report_${id.slice(0, 8)}.txt`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-      
-      toast.success('Report downloaded successfully');
+      const doc = new jsPDF();
+      const scores = analysis.user_site_scores;
+      let y = 20;
+
+      // Title
+      doc.setFontSize(20);
+      doc.setTextColor(0, 85, 255);
+      doc.text('SITERANK AI', 105, y, { align: 'center' });
+      y += 8;
+      doc.setFontSize(14);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Website Competitor Analysis Report', 105, y, { align: 'center' });
+      y += 15;
+
+      // Line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, y, 190, y);
+      y += 10;
+
+      // Website analyzed
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Website Analyzed: ${analysis.user_site_url}`, 20, y);
+      y += 7;
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, y);
+      y += 15;
+
+      // Overall Score Box
+      doc.setFillColor(0, 85, 255);
+      doc.roundedRect(20, y, 170, 25, 3, 3, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.text('Overall Score', 30, y + 10);
+      doc.setFontSize(24);
+      doc.text(`${scores.overall_score}/100`, 160, y + 16, { align: 'right' });
+      y += 35;
+
+      // Individual Scores
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(12);
+      doc.text('Score Breakdown:', 20, y);
+      y += 10;
+
+      const scoreItems = [
+        { name: 'SEO Score', value: scores.seo_score, color: [59, 130, 246] },
+        { name: 'Speed Score', value: scores.speed_score, color: [16, 185, 129] },
+        { name: 'Content Score', value: scores.content_score, color: [245, 158, 11] },
+        { name: 'UX Score', value: scores.ux_score, color: [139, 92, 246] }
+      ];
+
+      scoreItems.forEach(item => {
+        doc.setFontSize(10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(item.name, 25, y);
+        doc.text(`${item.value}/100`, 175, y, { align: 'right' });
+        
+        // Progress bar background
+        doc.setFillColor(230, 230, 230);
+        doc.roundedRect(25, y + 2, 150, 4, 1, 1, 'F');
+        
+        // Progress bar fill
+        doc.setFillColor(...item.color);
+        doc.roundedRect(25, y + 2, (item.value / 100) * 150, 4, 1, 1, 'F');
+        y += 12;
+      });
+      y += 5;
+
+      // Competitors Section
+      doc.setFontSize(12);
+      doc.setTextColor(0, 0, 0);
+      doc.text('Competitor Comparison:', 20, y);
+      y += 8;
+
+      analysis.competitors.forEach((comp, idx) => {
+        doc.setFontSize(9);
+        doc.setTextColor(80, 80, 80);
+        const compText = `${idx + 1}. ${comp.url} - Score: ${comp.scores.overall_score}/100`;
+        doc.text(compText, 25, y);
+        y += 6;
+      });
+      y += 10;
+
+      // AI Suggestions (if fits on page)
+      if (y < 200 && analysis.ai_suggestions) {
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text('AI Recommendations:', 20, y);
+        y += 8;
+        
+        doc.setFontSize(9);
+        doc.setTextColor(60, 60, 60);
+        const suggestions = analysis.ai_suggestions.substring(0, 800);
+        const lines = doc.splitTextToSize(suggestions, 170);
+        lines.slice(0, 15).forEach(line => {
+          if (y < 280) {
+            doc.text(line, 20, y);
+            y += 5;
+          }
+        });
+      }
+
+      // Action Plan on new page if needed
+      if (analysis.action_plan?.length > 0) {
+        doc.addPage();
+        y = 20;
+        
+        doc.setFontSize(14);
+        doc.setTextColor(0, 85, 255);
+        doc.text('Action Plan', 20, y);
+        y += 12;
+
+        analysis.action_plan.forEach((action, idx) => {
+          doc.setFontSize(10);
+          doc.setTextColor(0, 0, 0);
+          const actionText = `${idx + 1}. ${action}`;
+          const actionLines = doc.splitTextToSize(actionText, 170);
+          actionLines.forEach(line => {
+            doc.text(line, 20, y);
+            y += 6;
+          });
+          y += 4;
+        });
+      }
+
+      // Footer
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Generated by SITERANK AI - AI-Powered Website Competitor Analysis', 105, 290, { align: 'center' });
+
+      doc.save(`siterank-report-${id.slice(0, 8)}.pdf`);
+      toast.success('PDF report downloaded!');
     } catch (error) {
-      toast.error('Failed to download report');
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
     } finally {
       setDownloading(false);
     }
@@ -230,14 +372,29 @@ export default function AnalysisResultPage() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleReanalyze}
+              disabled={reanalyzing}
+              className="gap-2"
+              data-testid="reanalyze-btn"
+            >
+              {reanalyzing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <RotateCcw className="w-4 h-4" />
+              )}
+              Re-analyze
+            </Button>
             <Button variant="outline" size="sm" onClick={() => fetchAnalysis()} data-testid="refresh-btn">
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
             <Button 
               size="sm" 
-              onClick={downloadReport} 
+              onClick={downloadPdfReport} 
               disabled={downloading}
               className="gap-2"
               data-testid="download-report-btn"
@@ -247,7 +404,7 @@ export default function AnalysisResultPage() {
               ) : (
                 <Download className="w-4 h-4" />
               )}
-              Download Report
+              Download PDF
             </Button>
           </div>
         </div>
@@ -278,10 +435,7 @@ export default function AnalysisResultPage() {
                     <item.icon className="w-5 h-5 mx-auto text-muted-foreground mb-2" />
                     <p className={`text-2xl font-bold ${getScoreColor(item.score)}`}>{item.score}</p>
                     <p className="text-xs text-muted-foreground mt-1">{item.label}</p>
-                    <Progress 
-                      value={item.score} 
-                      className="h-1 mt-2"
-                    />
+                    <Progress value={item.score} className="h-1 mt-2" />
                   </div>
                 ))}
               </div>
