@@ -571,10 +571,10 @@ export default function AnalysisResultPage() {
 
           {/* AI Suggestions Tab */}
           <TabsContent value="suggestions" className="space-y-6">
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-primary" />
+                <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                  <Zap className="w-5 h-5 text-gray-400" />
                   AI-Powered Analysis
                 </CardTitle>
               </CardHeader>
