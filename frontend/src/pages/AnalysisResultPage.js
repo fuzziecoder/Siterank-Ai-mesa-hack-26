@@ -657,10 +657,10 @@ export default function AnalysisResultPage() {
               </Card>
 
               {/* Content Details */}
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <FileText className="w-5 h-5" />
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                    <FileText className="w-5 h-5 text-gray-400" />
                     Content Details
                   </CardTitle>
                 </CardHeader>
