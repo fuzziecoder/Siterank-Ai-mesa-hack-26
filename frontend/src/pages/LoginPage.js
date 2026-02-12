@@ -7,6 +7,7 @@ import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import ShinyText from '../components/ShinyText';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
