@@ -70,10 +70,10 @@ export default function HistoryPage() {
 
   const getStatusBadge = (status) => {
     const styles = {
-      completed: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-      processing: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-      pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-      failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+      completed: 'bg-green-900/30 text-green-400',
+      processing: 'bg-blue-900/30 text-blue-400',
+      pending: 'bg-yellow-900/30 text-yellow-400',
+      failed: 'bg-red-900/30 text-red-400'
     };
     const icons = {
       completed: <CheckCircle2 className="w-3 h-3" />,
@@ -95,19 +95,19 @@ export default function HistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" data-testid="history-loading">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex items-center justify-center bg-background" data-testid="history-loading">
+        <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen" data-testid="history-page">
+    <div className="min-h-screen bg-background" data-testid="history-page">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               Analysis History
             </h1>
             <p className="text-muted-foreground mt-1">
@@ -130,16 +130,16 @@ export default function HistoryPage() {
             placeholder="Search by URL..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-muted border-border"
             data-testid="search-input"
           />
         </div>
 
         {/* Analyses List */}
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <History className="w-5 h-5" />
+            <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+              <History className="w-5 h-5 text-gray-400" />
               All Analyses ({filteredAnalyses.length})
             </CardTitle>
           </CardHeader>
@@ -147,7 +147,7 @@ export default function HistoryPage() {
             {filteredAnalyses.length === 0 ? (
               <div className="text-center py-12">
                 <History className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
-                <h3 className="font-medium mb-2">
+                <h3 className="font-medium mb-2 text-foreground">
                   {searchQuery ? 'No matching analyses' : 'No analyses yet'}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
@@ -169,12 +169,12 @@ export default function HistoryPage() {
                 {filteredAnalyses.map((analysis) => (
                   <div 
                     key={analysis.id}
-                    className="flex items-center justify-between p-4 rounded-lg border hover:bg-muted/30 transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg border border-border hover:bg-accent/30 transition-colors"
                     data-testid={`history-item-${analysis.id}`}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium truncate">{analysis.user_site_url}</p>
+                        <p className="font-medium truncate text-foreground">{analysis.user_site_url}</p>
                         {getStatusBadge(analysis.status)}
                       </div>
                       <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
@@ -188,14 +188,14 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-3">
                       {analysis.status === 'completed' && (
                         <div className="text-right hidden sm:block">
-                          <p className="text-xl font-bold">{analysis.overall_score}</p>
+                          <p className="text-xl font-bold text-foreground">{analysis.overall_score}</p>
                           <p className="text-xs text-muted-foreground">Score</p>
                         </div>
                       )}
                       <div className="flex items-center gap-1">
                         <Link to={`/analysis/${analysis.id}`}>
                           <Button variant="ghost" size="icon" data-testid={`view-btn-${analysis.id}`}>
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-4 h-4 text-muted-foreground" />
                           </Button>
                         </Link>
                         <Button 
@@ -218,15 +218,15 @@ export default function HistoryPage() {
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Analysis?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-foreground">Delete Analysis?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               This action cannot be undone. This will permanently delete the analysis and all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleting} className="border-border">Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDelete} 
               disabled={deleting}
