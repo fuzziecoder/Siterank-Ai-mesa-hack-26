@@ -5,9 +5,10 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { BarChart3, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import ShinyText from '../components/ShinyText';
+import Logo from '../components/Logo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -38,13 +39,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" data-testid="login-page">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-background" data-testid="login-page">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center space-y-4">
-          <Link to="/" className="inline-flex items-center justify-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary to-blue-600 rounded-lg flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-primary-foreground" />
-            </div>
+          <Link to="/" className="inline-flex items-center justify-center gap-3">
+            <Logo size="lg" />
             <span style={{ fontFamily: "'Zen Dots', cursive" }}>
               <ShinyText text="SITERANK AI" speed={3} color="#0055FF" shineColor="#60a5fa" spread={80} />
             </span>
