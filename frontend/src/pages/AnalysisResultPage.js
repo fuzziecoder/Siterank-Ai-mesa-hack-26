@@ -592,18 +592,18 @@ export default function AnalysisResultPage() {
 
             {/* Action Plan */}
             {analysis.action_plan && analysis.action_plan.length > 0 && (
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                    <CheckCircle2 className="w-5 h-5 text-green-400" />
                     Action Plan
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3" data-testid="action-plan">
                     {analysis.action_plan.map((action, index) => (
-                      <li key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-medium flex items-center justify-center">
+                      <li key={index} className="flex items-start gap-3 p-3 rounded-lg bg-muted">
+                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-gray-600 text-foreground text-xs font-medium flex items-center justify-center">
                           {index + 1}
                         </span>
                         <span className="text-sm">{action}</span>
