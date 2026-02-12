@@ -12,7 +12,7 @@ load_dotenv()
 # JWT Configuration
 SECRET_KEY = os.environ.get('JWT_SECRET', 'competitor-analyzer-secret-key-2024')
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_HOURS = 24
+ACCESS_TOKEN_EXPIRE_HOURS = 168  # 7 days for better UX during long-running analyses
 
 security = HTTPBearer()
 
