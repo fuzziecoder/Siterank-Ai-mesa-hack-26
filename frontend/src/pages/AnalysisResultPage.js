@@ -675,10 +675,10 @@ export default function AnalysisResultPage() {
               </Card>
 
               {/* UX Details */}
-              <Card>
+              <Card className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Layout className="w-5 h-5" />
+                  <CardTitle className="text-lg flex items-center gap-2 text-foreground">
+                    <Layout className="w-5 h-5 text-gray-400" />
                     UX Details
                   </CardTitle>
                 </CardHeader>
