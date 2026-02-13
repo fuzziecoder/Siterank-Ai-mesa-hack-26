@@ -400,7 +400,7 @@ class WebsiteScraper:
         if not self.fetch():
             return False, {
                 'url': self.url,
-                'error': 'Failed to fetch website',
+                'error': self.error_message or 'Failed to fetch website',
                 'seo': {},
                 'speed': {},
                 'content': {},
@@ -420,4 +420,7 @@ class WebsiteScraper:
 def scrape_website(url: str) -> Tuple[bool, Dict[str, Any]]:
     """Convenience function to scrape a website"""
     scraper = WebsiteScraper(url)
-    return scraper.scrape_all()
+    success, data = scraper.scrape_all()
+    if not success and scraper.error_message:
+        data['error'] = scraper.error_message
+    return success, data
