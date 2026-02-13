@@ -9,6 +9,7 @@ import DashboardPage from './pages/DashboardPage';
 import AnalyzePage from './pages/AnalyzePage';
 import AnalysisResultPage from './pages/AnalysisResultPage';
 import HistoryPage from './pages/HistoryPage';
+import OptimizePage from './pages/OptimizePage';
 // Feature Pages
 import SEOAnalysisPage from './pages/SEOAnalysisPage';
 import SpeedMetricsPage from './pages/SpeedMetricsPage';
