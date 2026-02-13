@@ -24,6 +24,7 @@ from competitor_detector import detect_competitors, get_industry_insights
 from optimization_engine import generate_optimization_blueprint
 from seo_analyzer import analyze_seo
 from speed_analyzer import analyze_speed
+from content_analyzer import analyze_content
 
 
 # ==================== Competitor Detection ====================
