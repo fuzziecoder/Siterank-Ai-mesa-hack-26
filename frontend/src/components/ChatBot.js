@@ -167,17 +167,17 @@ export default function ChatBot() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-20 right-6 z-[9999] w-16 h-16 rounded-full transition-all duration-300 flex items-center justify-center ${
+        className={`fixed bottom-20 right-6 z-[9999] w-16 h-16 rounded-full transition-all duration-300 flex items-center justify-center overflow-hidden ${
           isOpen 
             ? 'bg-gray-800 hover:bg-gray-700 border border-gray-600' 
-            : 'bg-gradient-to-br from-gray-700 via-gray-800 to-black hover:from-gray-600 hover:via-gray-700 hover:to-gray-900 hover:scale-105 border border-gray-600'
+            : 'bg-black hover:bg-gray-900 hover:scale-105 border border-gray-600'
         }`}
         data-testid="chat-bot-btn"
       >
         {isOpen ? (
           <X className="w-7 h-7 text-white" />
         ) : (
-          <AppLogoIcon className="w-8 h-8 text-white" />
+          <img src="/bot-icon.png" alt="Chat" className="w-12 h-12 object-contain" />
         )}
       </button>
 
