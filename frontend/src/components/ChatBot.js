@@ -189,8 +189,8 @@ export default function ChatBot() {
         >
           {/* Header - Dark Theme */}
           <div className="bg-gray-900 border-b border-gray-700 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center">
-              <AppLogoIcon className="w-6 h-6 text-emerald-400" />
+            <div className="w-10 h-10 rounded-full bg-black border border-gray-600 flex items-center justify-center overflow-hidden">
+              <img src="/bot-icon.png" alt="Bot" className="w-8 h-8 object-contain" />
             </div>
             <div>
               <h3 className="font-semibold text-white">SITERANK Assistant</h3>
