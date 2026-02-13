@@ -95,174 +95,45 @@ export default function ClientSiteAnalysisPage() {
     }
   };
 
-  const generatePDFReport = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    let yPos = 20;
-    
-    // Header
-    doc.setFontSize(20);
-    doc.setTextColor(16, 185, 129); // Emerald
-    doc.text(agencyName || 'Website Audit Report', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 10;
-    
-    doc.setFontSize(12);
-    doc.setTextColor(100);
-    doc.text(`Prepared for: ${clientName || 'Client'}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 8;
-    doc.text(`Website: ${url}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 8;
-    doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos, { align: 'center' });
-    yPos += 20;
-    
-    // Overall Score
-    doc.setFontSize(16);
-    doc.setTextColor(0);
-    doc.text('Overall Website Score', 20, yPos);
-    yPos += 10;
-    
-    doc.setFontSize(40);
-    const scoreColor = analysis.overallScore >= 80 ? [16, 185, 129] : 
-                       analysis.overallScore >= 60 ? [234, 179, 8] : [239, 68, 68];
-    doc.setTextColor(...scoreColor);
-    doc.text(`${analysis.overallScore}/100`, 20, yPos);
-    yPos += 20;
-    
-    // Score Breakdown
-    doc.setFontSize(12);
-    doc.setTextColor(0);
-    doc.text(`SEO Score: ${analysis.seo.score}/100`, 20, yPos);
-    yPos += 8;
-    doc.text(`Speed Score: ${analysis.speed.score}/100`, 20, yPos);
-    yPos += 8;
-    doc.text(`Content Score: ${analysis.content.score}/100`, 20, yPos);
-    yPos += 20;
-    
-    // Issues Summary
-    doc.setFontSize(16);
-    doc.text('Issues Found', 20, yPos);
-    yPos += 10;
-    
-    const totalIssues = (analysis.seo.issues?.length || 0) + 
-                        (analysis.speed.issues?.length || 0) + 
-                        (analysis.content.issues?.length || 0);
-    
-    doc.setFontSize(12);
-    doc.text(`Total Issues: ${totalIssues}`, 20, yPos);
-    yPos += 8;
-    doc.text(`• SEO Issues: ${analysis.seo.issues?.length || 0}`, 25, yPos);
-    yPos += 6;
-    doc.text(`• Speed Issues: ${analysis.speed.issues?.length || 0}`, 25, yPos);
-    yPos += 6;
-    doc.text(`• Content Issues: ${analysis.content.issues?.length || 0}`, 25, yPos);
-    yPos += 15;
-    
-    // SEO Issues
-    if (analysis.seo.issues?.length > 0) {
-      doc.setFontSize(14);
-      doc.setTextColor(16, 185, 129);
-      doc.text('SEO Issues', 20, yPos);
-      yPos += 8;
+  const generatePDFReport = async () => {
+    setGeneratingPDF(true);
+    try {
+      const response = await axios.post(
+        `${API_URL}/api/report/white-label-pdf`,
+        {
+          url,
+          client_name: clientName || 'Client',
+          agency_name: agencyName || 'Website Audit Report',
+          agency_email: agencyEmail || null,
+          agency_website: agencyWebsite || null,
+          primary_color: primaryColor,
+          seo_data: analysis.seo,
+          speed_data: analysis.speed,
+          content_data: analysis.content,
+          include_fixes: fixes.seo.length > 0 || fixes.speed.length > 0 || fixes.content.length > 0,
+          seo_fixes: fixes.seo,
+          speed_fixes: fixes.speed,
+          content_fixes: fixes.content
+        },
+        { responseType: 'blob', headers: getAuthHeader() }
+      );
       
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      analysis.seo.issues.forEach((issue, i) => {
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.text(`${i + 1}. ${issue.issue || issue.name}`, 25, yPos);
-        yPos += 5;
-        if (issue.description) {
-          const desc = doc.splitTextToSize(issue.description, pageWidth - 50);
-          doc.setTextColor(100);
-          doc.text(desc, 30, yPos);
-          yPos += desc.length * 4 + 3;
-          doc.setTextColor(0);
-        }
-      });
-      yPos += 10;
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = downloadUrl;
+      a.download = `${clientName || 'client'}-website-audit.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(downloadUrl);
+      toast.success('White-label PDF report downloaded!');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF. Please try again.');
+    } finally {
+      setGeneratingPDF(false);
     }
-    
-    // Speed Issues
-    if (analysis.speed.issues?.length > 0) {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(14);
-      doc.setTextColor(6, 182, 212);
-      doc.text('Speed Issues', 20, yPos);
-      yPos += 8;
-      
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      analysis.speed.issues.forEach((issue, i) => {
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.text(`${i + 1}. ${issue.issue || issue.name}`, 25, yPos);
-        yPos += 5;
-        if (issue.description) {
-          const desc = doc.splitTextToSize(issue.description, pageWidth - 50);
-          doc.setTextColor(100);
-          doc.text(desc, 30, yPos);
-          yPos += desc.length * 4 + 3;
-          doc.setTextColor(0);
-        }
-      });
-      yPos += 10;
-    }
-    
-    // Content Issues
-    if (analysis.content.issues?.length > 0) {
-      if (yPos > 250) {
-        doc.addPage();
-        yPos = 20;
-      }
-      doc.setFontSize(14);
-      doc.setTextColor(168, 85, 247);
-      doc.text('Content Issues', 20, yPos);
-      yPos += 8;
-      
-      doc.setFontSize(10);
-      doc.setTextColor(0);
-      analysis.content.issues.forEach((issue, i) => {
-        if (yPos > 270) {
-          doc.addPage();
-          yPos = 20;
-        }
-        doc.text(`${i + 1}. ${issue.issue || issue.name}`, 25, yPos);
-        yPos += 5;
-        if (issue.description) {
-          const desc = doc.splitTextToSize(issue.description, pageWidth - 50);
-          doc.setTextColor(100);
-          doc.text(desc, 30, yPos);
-          yPos += desc.length * 4 + 3;
-          doc.setTextColor(0);
-        }
-      });
-    }
-    
-    // Footer
-    doc.addPage();
-    doc.setFontSize(14);
-    doc.setTextColor(0);
-    doc.text('Next Steps', 20, 20);
-    doc.setFontSize(10);
-    doc.text('1. Review the issues identified in this report', 25, 30);
-    doc.text('2. Download the fix code package (included separately)', 25, 36);
-    doc.text('3. Have your development team implement the fixes', 25, 42);
-    doc.text('4. Re-run the analysis to verify improvements', 25, 48);
-    
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text(`Generated by SITERANK AI | ${new Date().toISOString()}`, pageWidth / 2, 280, { align: 'center' });
-    
-    // Save
-    doc.save(`${clientName || 'client'}-website-audit.pdf`);
-    toast.success('PDF report downloaded!');
   };
 
   const downloadFixPackage = async () => {
