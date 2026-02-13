@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Toaster } from './components/ui/sonner';
+import ChatBot from './components/ChatBot';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -164,6 +165,7 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-background">
           <AppRoutes />
+          <ChatBot />
           <Toaster position="top-right" richColors />
         </div>
       </AuthProvider>
