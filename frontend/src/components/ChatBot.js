@@ -3,44 +3,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { X, Send, User, Sparkles } from 'lucide-react';
 
-// Custom App Logo Icon component
-const AppLogoIcon = ({ className }) => (
-  <svg 
-    viewBox="0 0 100 100" 
-    className={className}
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path 
-      d="M50 5L90 27.5V72.5L50 95L10 72.5V27.5L50 5Z" 
-      stroke="currentColor" 
-      strokeWidth="6" 
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path 
-      d="M50 30L70 42V66L50 78L30 66V42L50 30Z" 
-      stroke="currentColor" 
-      strokeWidth="5" 
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <path 
-      d="M30 42L50 54L70 42" 
-      stroke="currentColor" 
-      strokeWidth="5" 
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path 
-      d="M50 54V78" 
-      stroke="currentColor" 
-      strokeWidth="5" 
-      strokeLinecap="round"
-    />
-  </svg>
-);
-
 const SITE_KNOWLEDGE = {
   greetings: [
     "Hi! I'm your SITERANK AI assistant. How can I help you today?",
