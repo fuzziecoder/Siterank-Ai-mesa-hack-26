@@ -713,6 +713,82 @@ async def get_optimizations(
     return optimizations
 
 
+# ==================== Chatbot API ====================
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+class ChatResponse(BaseModel):
+    response: str
+    reasoning: Optional[str] = None
+
+@api_router.post("/chatbot", response_model=ChatResponse)
+async def chatbot_endpoint(request: ChatRequest):
+    """AI-powered chatbot using NVIDIA DeepSeek API"""
+    from openai import OpenAI
+    
+    nvidia_api_key = os.environ.get('NVIDIA_API_KEY')
+    nvidia_base_url = os.environ.get('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1')
+    
+    if not nvidia_api_key:
+        raise HTTPException(status_code=500, detail="NVIDIA API key not configured")
+    
+    try:
+        client_ai = OpenAI(
+            base_url=nvidia_base_url,
+            api_key=nvidia_api_key
+        )
+        
+        # Build system message for SITERANK AI context
+        system_message = {
+            "role": "system",
+            "content": """You are the SITERANK AI Assistant, a helpful chatbot for a website competitor analysis platform. 
+
+Your knowledge includes:
+- **Optimize My Site**: Full AI analysis with optimization blueprint, auto-detects competitors, generates 30-day strategy
+- **SEO Analysis**: Checks meta tags, heading structure, generates Schema.org markup, provides AI fixes
+- **Speed Metrics**: Measures load time, page size, image optimization, caching recommendations
+- **Content Score**: Analyzes word count, readability, detects thin content, generates blog ideas
+- **Competitor Analysis**: Compare your site against competitors with detailed score comparisons
+
+How to get started:
+1. Register or Login to your account
+2. Click "Optimize My Site" for a full analysis
+3. Or use specific tools (SEO, Speed, Content)
+4. Review the AI recommendations
+5. Copy fixes and implement them!
+
+Be helpful, concise, and guide users to the right features. SITERANK AI is currently free to use."""
+        }
+        
+        # Convert messages to API format
+        api_messages = [system_message]
+        for msg in request.messages:
+            api_messages.append({"role": msg.role, "content": msg.content})
+        
+        # Call NVIDIA DeepSeek API
+        completion = client_ai.chat.completions.create(
+            model="deepseek-ai/deepseek-v3.2",
+            messages=api_messages,
+            temperature=0.7,
+            top_p=0.95,
+            max_tokens=1024,
+            stream=False
+        )
+        
+        response_text = completion.choices[0].message.content
+        
+        return ChatResponse(response=response_text)
+        
+    except Exception as e:
+        logger.error(f"Chatbot API error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chatbot error: {str(e)}")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
