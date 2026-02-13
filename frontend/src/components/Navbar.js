@@ -32,6 +32,17 @@ export const Navbar = () => {
   // Main navigation items (same for both authenticated and non-authenticated)
   const mainNavItems = [
     {
+      label: 'Analyze',
+      bgColor: '#0D0716',
+      textColor: '#fff',
+      links: [
+        { label: 'Smart Analyze', href: '/smart-analyze', ariaLabel: 'Smart Analyze - Choose your analysis type' },
+        { label: 'My Website', href: '/analyze/my-site', ariaLabel: 'Analyze your own website' },
+        { label: 'Client Website', href: '/analyze/client-site', ariaLabel: 'Analyze client website' },
+        { label: 'Competitor', href: '/analyze/competitor', ariaLabel: 'Competitor intelligence' },
+      ]
+    },
+    {
       label: 'Features',
       bgColor: '#0D0716',
       textColor: '#fff',
