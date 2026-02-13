@@ -952,6 +952,364 @@ Visit https://siterankai.com for more help
     )
 
 
+# ==================== Ownership Verification ====================
+
+import dns.resolver
+import hashlib
+
+class VerificationRequest(BaseModel):
+    url: str
+    user_email: str
+
+class VerificationResponse(BaseModel):
+    verified: bool
+    method: Optional[str] = None
+    message: str
+    verification_code: str
+
+def generate_verification_code(url: str, email: str) -> str:
+    """Generate a unique verification code for a URL/user combination"""
+    data = f"{url}:{email}:siterank-verify"
+    return f"siterank-verify-{hashlib.sha256(data.encode()).hexdigest()[:16]}"
+
+@api_router.post("/verify/generate-code", response_model=VerificationResponse)
+async def generate_verification_code_endpoint(request: VerificationRequest):
+    """Generate a verification code for domain ownership"""
+    code = generate_verification_code(request.url, request.user_email)
+    
+    return VerificationResponse(
+        verified=False,
+        method=None,
+        message="Add this TXT record to your DNS or create a verification file",
+        verification_code=code
+    )
+
+@api_router.post("/verify/check", response_model=VerificationResponse)
+async def check_ownership_verification(request: VerificationRequest):
+    """Check if domain ownership is verified via DNS TXT or file"""
+    import httpx
+    
+    code = generate_verification_code(request.url, request.user_email)
+    
+    # Extract domain from URL
+    domain = request.url.replace("https://", "").replace("http://", "").split("/")[0]
+    
+    # Method 1: Check DNS TXT record
+    try:
+        answers = dns.resolver.resolve(domain, 'TXT')
+        for rdata in answers:
+            txt_value = str(rdata).strip('"')
+            if code in txt_value:
+                return VerificationResponse(
+                    verified=True,
+                    method="dns",
+                    message="Domain ownership verified via DNS TXT record!",
+                    verification_code=code
+                )
+    except Exception as e:
+        logger.debug(f"DNS check failed for {domain}: {e}")
+    
+    # Method 2: Check verification file
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            file_url = f"https://{domain}/.well-known/siterank-verify.txt"
+            response = await client.get(file_url)
+            if response.status_code == 200 and code in response.text:
+                return VerificationResponse(
+                    verified=True,
+                    method="file",
+                    message="Domain ownership verified via verification file!",
+                    verification_code=code
+                )
+    except Exception as e:
+        logger.debug(f"File check failed for {domain}: {e}")
+    
+    return VerificationResponse(
+        verified=False,
+        method=None,
+        message="Verification not found. Please add the DNS TXT record or upload the verification file.",
+        verification_code=code
+    )
+
+
+# ==================== CMS Integration APIs ====================
+
+class WordPressConnectRequest(BaseModel):
+    site_url: str
+    username: str
+    app_password: str  # WordPress Application Password
+
+class WordPressFixRequest(BaseModel):
+    site_url: str
+    username: str
+    app_password: str
+    fixes: List[Dict[str, Any]]
+    fix_type: str  # 'seo', 'content'
+
+class CMSConnectionResponse(BaseModel):
+    connected: bool
+    site_name: Optional[str] = None
+    site_url: str
+    message: str
+
+@api_router.post("/cms/wordpress/connect", response_model=CMSConnectionResponse)
+async def connect_wordpress(request: WordPressConnectRequest):
+    """Test WordPress connection using REST API"""
+    import httpx
+    import base64
+    
+    try:
+        # Create auth header
+        credentials = f"{request.username}:{request.app_password}"
+        auth_header = base64.b64encode(credentials.encode()).decode()
+        
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            # Test connection by getting site info
+            api_url = f"{request.site_url}/wp-json/wp/v2/settings"
+            response = await client.get(
+                api_url,
+                headers={"Authorization": f"Basic {auth_header}"}
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return CMSConnectionResponse(
+                    connected=True,
+                    site_name=data.get('title', 'WordPress Site'),
+                    site_url=request.site_url,
+                    message="Successfully connected to WordPress!"
+                )
+            elif response.status_code == 401:
+                return CMSConnectionResponse(
+                    connected=False,
+                    site_url=request.site_url,
+                    message="Authentication failed. Check your username and application password."
+                )
+            else:
+                return CMSConnectionResponse(
+                    connected=False,
+                    site_url=request.site_url,
+                    message=f"Connection failed with status {response.status_code}"
+                )
+                
+    except Exception as e:
+        logger.error(f"WordPress connection error: {e}")
+        return CMSConnectionResponse(
+            connected=False,
+            site_url=request.site_url,
+            message=f"Connection error: {str(e)}"
+        )
+
+@api_router.post("/cms/wordpress/apply-seo")
+async def apply_wordpress_seo_fixes(request: WordPressFixRequest):
+    """Apply SEO fixes to WordPress using Yoast/RankMath API or custom meta"""
+    import httpx
+    import base64
+    
+    try:
+        credentials = f"{request.username}:{request.app_password}"
+        auth_header = base64.b64encode(credentials.encode()).decode()
+        
+        results = []
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for fix in request.fixes:
+                # For SEO meta, we'd need to update post meta or use Yoast API
+                # This is a simplified example
+                if 'meta_description' in fix.get('issue', '').lower():
+                    # Update site description via settings (requires admin)
+                    try:
+                        response = await client.post(
+                            f"{request.site_url}/wp-json/wp/v2/settings",
+                            headers={
+                                "Authorization": f"Basic {auth_header}",
+                                "Content-Type": "application/json"
+                            },
+                            json={"description": fix.get('fixed_value', '')}
+                        )
+                        results.append({
+                            "issue": fix.get('issue'),
+                            "applied": response.status_code == 200,
+                            "message": "Updated site description" if response.status_code == 200 else "Failed to update"
+                        })
+                    except Exception as e:
+                        results.append({
+                            "issue": fix.get('issue'),
+                            "applied": False,
+                            "message": str(e)
+                        })
+                else:
+                    results.append({
+                        "issue": fix.get('issue'),
+                        "applied": False,
+                        "message": "This fix requires manual implementation or a supported SEO plugin"
+                    })
+        
+        return {
+            "success": True,
+            "results": results,
+            "message": f"Processed {len(results)} fixes"
+        }
+        
+    except Exception as e:
+        logger.error(f"WordPress fix application error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ==================== White-Label PDF Report ====================
+
+class WhiteLabelPDFRequest(BaseModel):
+    url: str
+    client_name: str
+    agency_name: str
+    agency_logo_url: Optional[str] = None
+    agency_website: Optional[str] = None
+    agency_email: Optional[str] = None
+    primary_color: Optional[str] = "#10B981"  # Emerald by default
+    seo_data: Dict[str, Any]
+    speed_data: Dict[str, Any]
+    content_data: Dict[str, Any]
+    include_fixes: bool = True
+    seo_fixes: Optional[List[Dict[str, Any]]] = []
+    speed_fixes: Optional[List[Dict[str, Any]]] = []
+    content_fixes: Optional[List[Dict[str, Any]]] = []
+
+@api_router.post("/report/white-label-pdf")
+async def generate_white_label_pdf(request: WhiteLabelPDFRequest):
+    """Generate a white-label PDF report for agencies"""
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.5*inch, bottomMargin=0.5*inch)
+    
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Heading1'],
+        fontSize=24,
+        spaceAfter=20,
+        textColor=colors.HexColor(request.primary_color)
+    )
+    
+    heading_style = ParagraphStyle(
+        'CustomHeading',
+        parent=styles['Heading2'],
+        fontSize=16,
+        spaceBefore=15,
+        spaceAfter=10,
+        textColor=colors.HexColor(request.primary_color)
+    )
+    
+    # Header
+    story.append(Paragraph(request.agency_name or "Website Audit Report", title_style))
+    story.append(Paragraph(f"Prepared for: <b>{request.client_name}</b>", styles['Normal']))
+    story.append(Paragraph(f"Website: {request.url}", styles['Normal']))
+    story.append(Paragraph(f"Date: {datetime.now().strftime('%B %d, %Y')}", styles['Normal']))
+    story.append(Spacer(1, 20))
+    
+    # Overall Score
+    overall_score = round((request.seo_data.get('score', 0) + 
+                          request.speed_data.get('score', 0) + 
+                          request.content_data.get('score', 0)) / 3)
+    
+    story.append(Paragraph("Executive Summary", heading_style))
+    story.append(Paragraph(f"Overall Website Health Score: <b>{overall_score}/100</b>", styles['Normal']))
+    story.append(Spacer(1, 10))
+    
+    # Score breakdown table
+    score_data = [
+        ['Category', 'Score', 'Status'],
+        ['SEO', f"{request.seo_data.get('score', 0)}/100", 'Needs Work' if request.seo_data.get('score', 0) < 70 else 'Good'],
+        ['Speed', f"{request.speed_data.get('score', 0)}/100", 'Needs Work' if request.speed_data.get('score', 0) < 70 else 'Good'],
+        ['Content', f"{request.content_data.get('score', 0)}/100", 'Needs Work' if request.content_data.get('score', 0) < 70 else 'Good'],
+    ]
+    
+    score_table = Table(score_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
+    score_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor(request.primary_color)),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f3f4f6')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.HexColor('#e5e7eb')),
+    ]))
+    story.append(score_table)
+    story.append(Spacer(1, 20))
+    
+    # Issues Found
+    total_issues = (len(request.seo_data.get('issues', [])) + 
+                   len(request.speed_data.get('issues', [])) + 
+                   len(request.content_data.get('issues', [])))
+    
+    story.append(Paragraph(f"Issues Identified: {total_issues}", heading_style))
+    
+    # SEO Issues
+    if request.seo_data.get('issues'):
+        story.append(Paragraph("SEO Issues", heading_style))
+        for i, issue in enumerate(request.seo_data['issues'][:5], 1):
+            story.append(Paragraph(f"{i}. <b>{issue.get('issue', issue.get('name', 'Issue'))}</b>", styles['Normal']))
+            if issue.get('description'):
+                story.append(Paragraph(f"   {issue['description']}", styles['Normal']))
+            story.append(Spacer(1, 5))
+    
+    # Speed Issues
+    if request.speed_data.get('issues'):
+        story.append(Paragraph("Performance Issues", heading_style))
+        for i, issue in enumerate(request.speed_data['issues'][:5], 1):
+            story.append(Paragraph(f"{i}. <b>{issue.get('issue', issue.get('name', 'Issue'))}</b>", styles['Normal']))
+            if issue.get('description'):
+                story.append(Paragraph(f"   {issue['description']}", styles['Normal']))
+            story.append(Spacer(1, 5))
+    
+    # Content Issues
+    if request.content_data.get('issues'):
+        story.append(Paragraph("Content Issues", heading_style))
+        for i, issue in enumerate(request.content_data['issues'][:5], 1):
+            story.append(Paragraph(f"{i}. <b>{issue.get('issue', issue.get('name', 'Issue'))}</b>", styles['Normal']))
+            if issue.get('description'):
+                story.append(Paragraph(f"   {issue['description']}", styles['Normal']))
+            story.append(Spacer(1, 5))
+    
+    # Recommendations
+    story.append(Paragraph("Recommended Next Steps", heading_style))
+    story.append(Paragraph("1. Address critical SEO issues (missing meta tags, schema markup)", styles['Normal']))
+    story.append(Paragraph("2. Optimize page speed (image compression, caching)", styles['Normal']))
+    story.append(Paragraph("3. Improve content depth and quality", styles['Normal']))
+    story.append(Paragraph("4. Implement provided fix code snippets", styles['Normal']))
+    story.append(Paragraph("5. Re-run analysis to verify improvements", styles['Normal']))
+    
+    # Footer
+    story.append(Spacer(1, 30))
+    if request.agency_website or request.agency_email:
+        footer_text = f"Report generated by {request.agency_name}"
+        if request.agency_website:
+            footer_text += f" | {request.agency_website}"
+        if request.agency_email:
+            footer_text += f" | {request.agency_email}"
+        story.append(Paragraph(footer_text, styles['Normal']))
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    filename = f"{request.client_name.replace(' ', '-').lower()}-audit-report.pdf"
+    
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
