@@ -515,6 +515,27 @@ async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
 
+# ==================== SEO Analysis ====================
+
+@api_router.post("/seo/analyze")
+async def seo_analyze_endpoint(
+    request: SEOAnalyzeRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Comprehensive SEO analysis with AI-generated fixes"""
+    if not request.url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    
+    try:
+        result = await analyze_seo(request.url)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"SEO analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"SEO analysis failed: {str(e)}")
+
+
 # ==================== Competitor Detection ====================
 
 @api_router.post("/competitors/detect", response_model=CompetitorDetectResponse)
