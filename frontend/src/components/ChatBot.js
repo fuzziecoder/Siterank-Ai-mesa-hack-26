@@ -185,7 +185,7 @@ export default function ChatBot() {
       {/* Chat Window */}
       {isOpen && (
         <div 
-          className="fixed bottom-24 right-6 z-50 w-[360px] h-[500px] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+          className="fixed bottom-40 right-6 z-[9998] w-[360px] h-[500px] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           data-testid="chat-bot-window"
         >
           {/* Header */}
