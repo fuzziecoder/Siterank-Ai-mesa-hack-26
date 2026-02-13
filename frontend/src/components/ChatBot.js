@@ -205,18 +205,17 @@ export default function ChatBot() {
       {/* Chat Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`fixed bottom-20 right-6 z-[9999] w-16 h-16 rounded-full shadow-2xl transition-all duration-300 flex items-center justify-center border-4 border-white/30 ${
+        className={`fixed bottom-20 right-6 z-[9999] w-16 h-16 rounded-full transition-all duration-300 flex items-center justify-center ${
           isOpen 
-            ? 'bg-gray-700 hover:bg-gray-600' 
-            : 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400 hover:scale-110'
+            ? 'bg-gray-800 hover:bg-gray-700 border border-gray-600' 
+            : 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400 hover:scale-105'
         }`}
-        style={{ boxShadow: '0 8px 32px rgba(16, 185, 129, 0.4)' }}
         data-testid="chat-bot-btn"
       >
         {isOpen ? (
           <X className="w-7 h-7 text-white" />
         ) : (
-          <MessageCircle className="w-7 h-7 text-white" />
+          <AppLogoIcon className="w-8 h-8 text-white" />
         )}
       </button>
 
@@ -226,18 +225,18 @@ export default function ChatBot() {
           className="fixed bottom-40 right-6 z-[9998] w-[360px] h-[500px] bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           data-testid="chat-bot-window"
         >
-          {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-600 to-cyan-600 p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-              <Bot className="w-6 h-6 text-white" />
+          {/* Header - Dark Theme */}
+          <div className="bg-gray-900 border-b border-gray-700 p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center">
+              <AppLogoIcon className="w-6 h-6 text-emerald-400" />
             </div>
             <div>
               <h3 className="font-semibold text-white">SITERANK Assistant</h3>
-              <p className="text-xs text-white/80">Ask me anything about the site</p>
+              <p className="text-xs text-gray-400">Ask me anything about the site</p>
             </div>
           </div>
 
-          {/* Messages */}
+          {/* Messages */}}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((msg, index) => (
               <div 
