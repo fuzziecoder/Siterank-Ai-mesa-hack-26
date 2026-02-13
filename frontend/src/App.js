@@ -149,6 +149,12 @@ function AppRoutes() {
         <Route path="/features/content" element={<ContentScorePage />} />
         <Route path="/features/download" element={<DownloadFixesPage />} />
         
+        {/* Smart Analysis Flow */}
+        <Route path="/smart-analyze" element={<SmartAnalyzePage />} />
+        <Route path="/analyze/my-site" element={<MySiteAnalysisPage />} />
+        <Route path="/analyze/client-site" element={<ClientSiteAnalysisPage />} />
+        <Route path="/analyze/competitor" element={<CompetitorAnalysisPage />} />
+        
         {/* Solution Pages (Public) */}
         <Route path="/solutions/marketers" element={<ForMarketersPage />} />
         <Route path="/solutions/agencies" element={<ForAgenciesPage />} />
