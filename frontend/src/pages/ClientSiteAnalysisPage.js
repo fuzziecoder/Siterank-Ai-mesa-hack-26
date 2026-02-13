@@ -6,11 +6,10 @@ import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { 
   Building2, Globe, Loader2, CheckCircle, Download, FileText,
-  AlertTriangle, Search, Zap, Copy, Check, Mail, Package
+  AlertTriangle, Search, Zap, Copy, Check, Mail, Package, Palette
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import jsPDF from 'jspdf';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
@@ -20,7 +19,11 @@ export default function ClientSiteAnalysisPage() {
   const [url, setUrl] = useState(searchParams.get('url') || '');
   const [clientName, setClientName] = useState('');
   const [agencyName, setAgencyName] = useState('');
+  const [agencyEmail, setAgencyEmail] = useState('');
+  const [agencyWebsite, setAgencyWebsite] = useState('');
+  const [primaryColor, setPrimaryColor] = useState('#10B981');
   const [loading, setLoading] = useState(false);
+  const [generatingPDF, setGeneratingPDF] = useState(false);
   const [generatingFixes, setGeneratingFixes] = useState(false);
   const [analysis, setAnalysis] = useState(null);
   const [fixes, setFixes] = useState({ seo: [], speed: [], content: [] });
