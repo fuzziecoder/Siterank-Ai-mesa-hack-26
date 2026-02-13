@@ -829,6 +829,131 @@ async def fix_content_issues(request: ContentFixRequest):
         raise HTTPException(status_code=500, detail=f"Failed to generate content fixes: {str(e)}")
 
 
+# ==================== Download All Fixes as ZIP ====================
+
+import zipfile
+import io
+from fastapi.responses import StreamingResponse
+
+class AllFixesRequest(BaseModel):
+    url: str
+    seo_fixes: Optional[List[Dict[str, Any]]] = []
+    speed_fixes: Optional[List[Dict[str, Any]]] = []
+    content_fixes: Optional[List[Dict[str, Any]]] = []
+    server_type: Optional[str] = "nginx"
+
+@api_router.post("/fix/download-zip")
+async def download_all_fixes_zip(request: AllFixesRequest):
+    """Generate a ZIP file containing all fixes"""
+    
+    # Create in-memory ZIP file
+    zip_buffer = io.BytesIO()
+    
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        # Add README
+        readme_content = f"""# SITERANK AI - Website Fixes Package
+# Generated: {datetime.now().isoformat()}
+# URL: {request.url}
+
+## Contents:
+- seo-fixes.html - SEO improvements (meta tags, schema, etc.)
+- speed-fixes.conf - Performance configurations ({request.server_type})
+- content-fixes.html - Content improvements and rewrites
+
+## How to Use:
+1. Open each file and review the fixes
+2. Copy the relevant code snippets
+3. Implement in your website
+4. Re-run analysis to verify improvements
+
+## Support:
+Visit https://siterankai.com for more help
+"""
+        zip_file.writestr("README.md", readme_content)
+        
+        # Add SEO fixes
+        if request.seo_fixes:
+            seo_content = f"""<!-- SITERANK AI - SEO Fixes for {request.url} -->
+<!-- Generated: {datetime.now().isoformat()} -->
+
+"""
+            for i, fix in enumerate(request.seo_fixes, 1):
+                seo_content += f"""
+<!-- ==================== Fix {i}: {fix.get('issue', 'Unknown')} ==================== -->
+<!-- Instructions: {fix.get('instructions', 'N/A')} -->
+<!-- Placement: {fix.get('placement', 'N/A')} -->
+<!-- Impact: {fix.get('impact', 'N/A')} -->
+
+{fix.get('fixed_code', '')}
+
+"""
+            zip_file.writestr("seo-fixes.html", seo_content)
+        
+        # Add Speed fixes
+        if request.speed_fixes:
+            speed_content = f"""# SITERANK AI - Speed Fixes for {request.url}
+# Server Type: {request.server_type}
+# Generated: {datetime.now().isoformat()}
+
+"""
+            for i, fix in enumerate(request.speed_fixes, 1):
+                speed_content += f"""
+# ==================== Fix {i}: {fix.get('issue', 'Unknown')} ====================
+# Instructions: {fix.get('instructions', 'N/A')}
+# Impact: {fix.get('impact', 'N/A')}
+
+{fix.get('fixed_code', '')}
+
+"""
+            
+            # Set appropriate extension based on server type
+            ext = ".conf" if request.server_type in ["nginx", "apache"] else ".js"
+            zip_file.writestr(f"speed-fixes{ext}", speed_content)
+        
+        # Add Content fixes
+        if request.content_fixes:
+            content_content = f"""<!-- SITERANK AI - Content Fixes for {request.url} -->
+<!-- Generated: {datetime.now().isoformat()} -->
+
+"""
+            for i, fix in enumerate(request.content_fixes, 1):
+                content_content += f"""
+<!-- ==================== Fix {i}: {fix.get('issue', 'Unknown')} ==================== -->
+<!-- Section: {fix.get('section', 'N/A')} -->
+<!-- Instructions: {fix.get('instructions', 'N/A')} -->
+<!-- Word Count Change: {fix.get('word_count_delta', 'N/A')} -->
+
+{fix.get('fixed_code', '')}
+
+"""
+            zip_file.writestr("content-fixes.html", content_content)
+        
+        # Add a summary JSON file
+        summary = {
+            "url": request.url,
+            "generated_at": datetime.now().isoformat(),
+            "total_fixes": len(request.seo_fixes or []) + len(request.speed_fixes or []) + len(request.content_fixes or []),
+            "seo_fixes_count": len(request.seo_fixes or []),
+            "speed_fixes_count": len(request.speed_fixes or []),
+            "content_fixes_count": len(request.content_fixes or []),
+            "server_type": request.server_type
+        }
+        zip_file.writestr("summary.json", json.dumps(summary, indent=2))
+    
+    # Prepare response
+    zip_buffer.seek(0)
+    
+    # Generate filename
+    domain = request.url.replace("https://", "").replace("http://", "").replace("/", "_")[:30]
+    filename = f"siterank-fixes-{domain}.zip"
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
