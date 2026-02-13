@@ -789,6 +789,46 @@ Be helpful, concise, and guide users to the right features. SITERANK AI is curre
         raise HTTPException(status_code=500, detail=f"Chatbot error: {str(e)}")
 
 
+# ==================== Auto-Fix APIs ====================
+
+from auto_fix_engine import (
+    SEOFixRequest, SpeedFixRequest, ContentFixRequest, FixResponse,
+    generate_seo_fixes, generate_speed_fixes, generate_content_fixes
+)
+
+@api_router.post("/fix/seo", response_model=FixResponse)
+async def fix_seo_issues(request: SEOFixRequest):
+    """Generate AI-powered SEO fixes for detected issues"""
+    try:
+        result = await generate_seo_fixes(request)
+        return result
+    except Exception as e:
+        logger.error(f"SEO fix error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate SEO fixes: {str(e)}")
+
+
+@api_router.post("/fix/speed", response_model=FixResponse)
+async def fix_speed_issues(request: SpeedFixRequest):
+    """Generate AI-powered speed optimization fixes"""
+    try:
+        result = await generate_speed_fixes(request)
+        return result
+    except Exception as e:
+        logger.error(f"Speed fix error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate speed fixes: {str(e)}")
+
+
+@api_router.post("/fix/content", response_model=FixResponse)
+async def fix_content_issues(request: ContentFixRequest):
+    """Generate AI-powered content fixes and rewrites"""
+    try:
+        result = await generate_content_fixes(request)
+        return result
+    except Exception as e:
+        logger.error(f"Content fix error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate content fixes: {str(e)}")
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
