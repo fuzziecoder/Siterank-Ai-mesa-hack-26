@@ -208,7 +208,7 @@ export default function ChatBot() {
         className={`fixed bottom-20 right-6 z-[9999] w-16 h-16 rounded-full transition-all duration-300 flex items-center justify-center ${
           isOpen 
             ? 'bg-gray-800 hover:bg-gray-700 border border-gray-600' 
-            : 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-400 hover:via-teal-400 hover:to-cyan-400 hover:scale-105'
+            : 'bg-gradient-to-br from-gray-700 via-gray-800 to-black hover:from-gray-600 hover:via-gray-700 hover:to-gray-900 hover:scale-105 border border-gray-600'
         }`}
         data-testid="chat-bot-btn"
       >
