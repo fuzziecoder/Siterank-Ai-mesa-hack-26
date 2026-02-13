@@ -15,6 +15,7 @@ import OptimizePage from './pages/OptimizePage';
 import SEOAnalysisPage from './pages/SEOAnalysisPage';
 import SpeedMetricsPage from './pages/SpeedMetricsPage';
 import ContentScorePage from './pages/ContentScorePage';
+import DownloadFixesPage from './pages/DownloadFixesPage';
 // Solution Pages
 import ForMarketersPage from './pages/ForMarketersPage';
 import ForAgenciesPage from './pages/ForAgenciesPage';
