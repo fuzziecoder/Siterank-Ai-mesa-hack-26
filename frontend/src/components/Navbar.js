@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { User, LogOut, BarChart3, History, Search, Menu, X, Plus } from 'lucide-react';
+import { User, LogOut, BarChart3, History, Search, Menu, X, Plus, Sparkles } from 'lucide-react';
 import Logo from './Logo';
 import ShinyText from './ShinyText';
 
