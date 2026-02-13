@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { 
   Zap, Globe, Loader2, AlertTriangle, CheckCircle, Copy, Check,
-  Clock, HardDrive, FileCode, Gauge, Server, Image, ArrowRight, 
-  Sparkles, RefreshCw, ChevronDown, ChevronUp, TrendingUp
+  Wand2, Download, ChevronDown, ChevronUp, Timer, HardDrive, Image, Server
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -16,15 +15,14 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 export default function SpeedMetricsPage() {
   const { isAuthenticated, getAuthHeader } = useAuth();
   const [url, setUrl] = useState('');
+  const [serverType, setServerType] = useState('nginx');
   const [loading, setLoading] = useState(false);
+  const [fixingAll, setFixingAll] = useState(false);
+  const [fixingIssue, setFixingIssue] = useState(null);
   const [analysis, setAnalysis] = useState(null);
+  const [fixes, setFixes] = useState(null);
   const [copiedId, setCopiedId] = useState(null);
-  const [expandedSections, setExpandedSections] = useState({
-    issues: true,
-    metrics: true,
-    images: false,
-    resources: false
-  });
+  const [expandedFixes, setExpandedFixes] = useState({});
 
   const handleAnalyze = async () => {
     if (!url) {
@@ -39,6 +37,7 @@ export default function SpeedMetricsPage() {
 
     setLoading(true);
     setAnalysis(null);
+    setFixes(null);
 
     try {
       const response = await axios.post(
@@ -56,6 +55,54 @@ export default function SpeedMetricsPage() {
     }
   };
 
+  const handleFixAll = async () => {
+    if (!analysis?.issues?.length) return;
+    
+    setFixingAll(true);
+    try {
+      const issueNames = analysis.issues.map(i => i.issue || i.name || i.type);
+      const response = await axios.post(`${API_URL}/api/fix/speed`, {
+        url: url,
+        issues: issueNames,
+        server_type: serverType
+      });
+      
+      setFixes(response.data.fixes);
+      const expanded = {};
+      response.data.fixes.forEach((_, i) => expanded[i] = true);
+      setExpandedFixes(expanded);
+      toast.success(`Generated ${response.data.fixes.length} fixes!`);
+    } catch (error) {
+      toast.error('Failed to generate fixes');
+    } finally {
+      setFixingAll(false);
+    }
+  };
+
+  const handleFixSingle = async (issue, index) => {
+    setFixingIssue(index);
+    try {
+      const response = await axios.post(`${API_URL}/api/fix/speed`, {
+        url: url,
+        issues: [issue.issue || issue.name || issue.type],
+        server_type: serverType
+      });
+      
+      const newFix = response.data.fixes[0];
+      setFixes(prev => {
+        const updated = prev ? [...prev] : [];
+        updated[index] = newFix;
+        return updated;
+      });
+      setExpandedFixes(prev => ({ ...prev, [index]: true }));
+      toast.success('Fix generated!');
+    } catch (error) {
+      toast.error('Failed to generate fix');
+    } finally {
+      setFixingIssue(null);
+    }
+  };
+
   const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
@@ -63,8 +110,28 @@ export default function SpeedMetricsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const toggleSection = (section) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  const downloadAllFixes = () => {
+    if (!fixes?.length) return;
+    
+    let content = `# SITERANK AI - Speed Fixes for ${url}\n`;
+    content += `# Server Type: ${serverType}\n`;
+    content += `# Generated: ${new Date().toISOString()}\n\n`;
+    
+    fixes.forEach((fix, i) => {
+      content += `# Fix ${i + 1}: ${fix.issue}\n`;
+      content += `# ${fix.instructions}\n`;
+      if (fix.config_type) content += `# Config: ${fix.config_type}\n`;
+      content += `${fix.fixed_code}\n\n`;
+    });
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url_blob = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url_blob;
+    a.download = `speed-fixes-${serverType}.conf`;
+    a.click();
+    URL.revokeObjectURL(url_blob);
+    toast.success('Fixes downloaded!');
   };
 
   const getScoreColor = (score) => {
@@ -74,10 +141,10 @@ export default function SpeedMetricsPage() {
     return 'text-red-400';
   };
 
-  const getMetricStatus = (value, thresholds) => {
-    if (value <= thresholds.good) return { color: 'text-emerald-400', bg: 'bg-emerald-500/10', status: 'Good' };
-    if (value <= thresholds.fair) return { color: 'text-yellow-400', bg: 'bg-yellow-500/10', status: 'Needs Work' };
-    return { color: 'text-red-400', bg: 'bg-red-500/10', status: 'Poor' };
+  const getMetricStatus = (value, good, bad) => {
+    if (value <= good) return 'text-emerald-400';
+    if (value >= bad) return 'text-red-400';
+    return 'text-yellow-400';
   };
 
   return (
@@ -90,16 +157,16 @@ export default function SpeedMetricsPage() {
             <span className="text-sm font-medium text-cyan-400">AI Performance Optimizer</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-3">
-            Speed Analysis & Optimization
+            Speed Metrics & Auto-Fix
           </h1>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Analyze load times, detect bottlenecks, and get AI-powered optimization recommendations.
+            Analyze performance → Get server configs & code → Copy & deploy
           </p>
         </div>
 
         {/* URL Input */}
-        <Card className="bg-card border-border max-w-2xl mx-auto mb-8">
-          <CardContent className="p-6">
+        <Card className="bg-card border-border max-w-3xl mx-auto mb-8">
+          <CardContent className="p-6 space-y-4">
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
                 <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -132,8 +199,30 @@ export default function SpeedMetricsPage() {
                 )}
               </Button>
             </div>
+            
+            {/* Server Type Selection */}
+            <div className="flex items-center gap-4">
+              <Server className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Server Type:</span>
+              <div className="flex gap-2">
+                {['nginx', 'apache', 'node'].map(type => (
+                  <button
+                    key={type}
+                    onClick={() => setServerType(type)}
+                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                      serverType === type 
+                        ? 'bg-cyan-600 text-white' 
+                        : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    }`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
             {!isAuthenticated && (
-              <p className="text-sm text-muted-foreground mt-3 text-center">
+              <p className="text-sm text-muted-foreground text-center">
                 Please <a href="/login" className="text-cyan-400 hover:underline">login</a> to use the speed analyzer
               </p>
             )}
@@ -143,302 +232,247 @@ export default function SpeedMetricsPage() {
         {/* Results */}
         {analysis && (
           <div className="space-y-6">
-            {/* Score Overview */}
-            <Card className="bg-card border-border">
-              <CardContent className="p-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                  <div className="flex items-center gap-6">
-                    <div className={`w-24 h-24 rounded-2xl bg-muted flex items-center justify-center`}>
-                      <span className={`text-4xl font-bold ${getScoreColor(analysis.score)}`}>
-                        {analysis.score}
-                      </span>
-                    </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-foreground">Performance Score</h2>
-                      <p className="text-muted-foreground text-sm mt-1">{analysis.url}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="flex items-center gap-1 text-sm">
-                          <Clock className="w-4 h-4 text-cyan-400" />
-                          <span className="text-cyan-400">{analysis.load_time}s load time</span>
-                        </span>
-                        <span className="flex items-center gap-1 text-sm">
-                          <HardDrive className="w-4 h-4 text-purple-400" />
-                          <span className="text-purple-400">{analysis.page_size_kb}KB</span>
-                        </span>
-                      </div>
-                    </div>
+            {/* Metrics Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 text-center">
+                  <Timer className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <div className={`text-2xl font-bold ${getMetricStatus(analysis.metrics?.load_time || 0, 2, 5)}`}>
+                    {analysis.metrics?.load_time?.toFixed(2) || '0'}s
                   </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => { setAnalysis(null); setUrl(''); }}
-                    className="border-border gap-2"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                    New Analysis
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="text-sm text-muted-foreground">Load Time</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 text-center">
+                  <HardDrive className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <div className={`text-2xl font-bold ${getMetricStatus(analysis.metrics?.page_size || 0, 1000, 3000)}`}>
+                    {((analysis.metrics?.page_size || 0) / 1024).toFixed(0)}KB
+                  </div>
+                  <div className="text-sm text-muted-foreground">Page Size</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 text-center">
+                  <Image className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <div className="text-2xl font-bold text-foreground">
+                    {analysis.metrics?.images || 0}
+                  </div>
+                  <div className="text-sm text-muted-foreground">Images</div>
+                </CardContent>
+              </Card>
+              <Card className="bg-card border-border">
+                <CardContent className="p-4 text-center">
+                  <Zap className="w-6 h-6 text-cyan-400 mx-auto mb-2" />
+                  <div className={`text-2xl font-bold ${getScoreColor(analysis.score)}`}>
+                    {analysis.score}/100
+                  </div>
+                  <div className="text-sm text-muted-foreground">Speed Score</div>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Key Metrics */}
-            <Card className="bg-card border-border">
-              <CardHeader 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleSection('metrics')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center">
-                      <Gauge className="w-5 h-5 text-cyan-400" />
-                    </div>
+            {/* Fix All Button */}
+            {analysis.issues?.length > 0 && (
+              <Card className="bg-card border-border">
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     <div>
-                      <CardTitle className="text-lg">Performance Metrics</CardTitle>
-                      <CardDescription>Core Web Vitals and key performance indicators</CardDescription>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {analysis.issues.length} Performance Issues Found
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Generate optimized configs for {serverType.charAt(0).toUpperCase() + serverType.slice(1)}
+                      </p>
                     </div>
-                  </div>
-                  {expandedSections.metrics ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </div>
-              </CardHeader>
-              {expandedSections.metrics && analysis.metrics && (
-                <CardContent className="pt-0">
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {analysis.metrics.map((metric, index) => {
-                      const status = getMetricStatus(metric.value, metric.thresholds);
-                      return (
-                        <div key={index} className={`p-4 rounded-lg ${status.bg} border border-border`}>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-muted-foreground">{metric.name}</span>
-                            <span className={`text-xs font-medium ${status.color}`}>{status.status}</span>
-                          </div>
-                          <p className={`text-2xl font-bold ${status.color}`}>
-                            {metric.value}{metric.unit}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">{metric.description}</p>
-                        </div>
-                      );
-                    })}
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={handleFixAll}
+                        disabled={fixingAll}
+                        className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 gap-2"
+                        data-testid="fix-all-speed-btn"
+                      >
+                        {fixingAll ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-4 h-4" />
+                            Fix All Issues
+                          </>
+                        )}
+                      </Button>
+                      {fixes?.length > 0 && (
+                        <Button
+                          onClick={downloadAllFixes}
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Download className="w-4 h-4" />
+                          Download Config
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
-              )}
-            </Card>
+              </Card>
+            )}
 
-            {/* Optimization Issues */}
+            {/* Issues List */}
             <Card className="bg-card border-border">
-              <CardHeader 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleSection('issues')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                      <AlertTriangle className="w-5 h-5 text-orange-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Optimization Opportunities</CardTitle>
-                      <CardDescription>Issues affecting performance with AI fixes</CardDescription>
-                    </div>
-                  </div>
-                  {expandedSections.issues ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </div>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-400" />
+                  Performance Issues
+                </CardTitle>
               </CardHeader>
-              {expandedSections.issues && (
-                <CardContent className="pt-0 space-y-4">
-                  {analysis.issues?.map((issue, index) => (
-                    <div key={index} className="p-4 rounded-lg bg-muted/50 border border-border">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                              issue.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-                              issue.impact === 'medium' ? 'bg-orange-500/20 text-orange-400' :
-                              'bg-yellow-500/20 text-yellow-400'
-                            }`}>
-                              {issue.impact?.toUpperCase()} IMPACT
-                            </span>
-                            {issue.savings && (
-                              <span className="text-xs text-emerald-400">
-                                Save {issue.savings}
-                              </span>
-                            )}
+              <CardContent className="space-y-4">
+                {analysis.issues?.length === 0 ? (
+                  <div className="flex items-center gap-3 p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <CheckCircle className="w-5 h-5 text-emerald-400" />
+                    <span className="text-emerald-400">Great! No major performance issues detected.</span>
+                  </div>
+                ) : (
+                  analysis.issues?.map((issue, index) => (
+                    <div key={index} className="border border-border rounded-lg overflow-hidden">
+                      {/* Issue Header */}
+                      <div className="p-4 bg-muted/30 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Zap className="w-5 h-5 text-orange-400" />
+                          <div>
+                            <h4 className="font-medium text-foreground">
+                              {issue.issue || issue.name || issue.type}
+                            </h4>
+                            <p className="text-sm text-muted-foreground">{issue.description}</p>
                           </div>
-                          <h4 className="font-semibold text-foreground">{issue.title}</h4>
-                          <p className="text-sm text-muted-foreground mt-1">{issue.description}</p>
-                          
-                          {issue.fix && (
-                            <div className="mt-3 p-3 rounded bg-cyan-500/10 border border-cyan-500/20">
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <Sparkles className="w-4 h-4 text-cyan-400" />
-                                  <p className="text-xs text-cyan-400 font-medium">AI Recommendation:</p>
-                                </div>
-                                {issue.code && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => copyToClipboard(issue.code, `fix-${index}`)}
-                                    className="h-7 px-2"
-                                  >
-                                    {copiedId === `fix-${index}` ? (
-                                      <Check className="w-4 h-4 text-cyan-400" />
-                                    ) : (
-                                      <Copy className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                )}
-                              </div>
-                              <p className="text-sm text-cyan-300">{issue.fix}</p>
-                              {issue.code && (
-                                <pre className="mt-2 p-2 rounded bg-background text-xs text-muted-foreground overflow-x-auto">
-                                  <code>{issue.code}</code>
-                                </pre>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {fixes?.[index] ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setExpandedFixes(prev => ({ ...prev, [index]: !prev[index] }))}
+                              className="gap-1"
+                            >
+                              {expandedFixes[index] ? (
+                                <>Hide Fix <ChevronUp className="w-4 h-4" /></>
+                              ) : (
+                                <>Show Fix <ChevronDown className="w-4 h-4" /></>
                               )}
-                            </div>
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => handleFixSingle(issue, index)}
+                              disabled={fixingIssue === index || fixingAll}
+                              size="sm"
+                              className="bg-cyan-600 hover:bg-cyan-500 gap-1"
+                            >
+                              {fixingIssue === index ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                  Fixing...
+                                </>
+                              ) : (
+                                <>
+                                  <Zap className="w-4 h-4" />
+                                  Fix This
+                                </>
+                              )}
+                            </Button>
                           )}
                         </div>
                       </div>
+                      
+                      {/* Fix Result */}
+                      {fixes?.[index] && expandedFixes[index] && (
+                        <div className="p-4 border-t border-border bg-background">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-4 h-4 text-emerald-400" />
+                              <span className="text-sm font-medium text-emerald-400">Fix Generated</span>
+                              {fixes[index].config_type && (
+                                <span className="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded">
+                                  {fixes[index].config_type}
+                                </span>
+                              )}
+                            </div>
+                            {fixes[index].impact && (
+                              <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                                {fixes[index].impact}
+                              </span>
+                            )}
+                          </div>
+                          
+                          <p className="text-sm text-muted-foreground mb-3">
+                            <strong>Instructions:</strong> {fixes[index].instructions}
+                          </p>
+                          
+                          {/* Code Block */}
+                          <div className="relative">
+                            <pre className="bg-gray-900 border border-gray-700 rounded-lg p-4 overflow-x-auto text-sm text-gray-300">
+                              <code>{fixes[index].fixed_code}</code>
+                            </pre>
+                            <Button
+                              onClick={() => copyToClipboard(fixes[index].fixed_code, `fix-${index}`)}
+                              size="sm"
+                              variant="ghost"
+                              className="absolute top-2 right-2 h-8 gap-1 bg-gray-800 hover:bg-gray-700"
+                            >
+                              {copiedId === `fix-${index}` ? (
+                                <>
+                                  <Check className="w-4 h-4 text-emerald-400" />
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-4 h-4" />
+                                  Copy
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  {(!analysis.issues || analysis.issues.length === 0) && (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <CheckCircle className="w-12 h-12 mx-auto mb-3 text-emerald-400" />
-                      <p>Great! No major performance issues detected.</p>
-                    </div>
-                  )}
-                </CardContent>
-              )}
+                  ))
+                )}
+              </CardContent>
             </Card>
 
-            {/* Image Optimization */}
-            <Card className="bg-card border-border">
-              <CardHeader 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleSection('images')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                      <Image className="w-5 h-5 text-purple-400" />
+            {/* Fixes Summary */}
+            {fixes?.length > 0 && (
+              <Card className="bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
+                      <Wand2 className="w-5 h-5 text-cyan-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg">Image Optimization</CardTitle>
-                      <CardDescription>Compress and optimize images for faster loading</CardDescription>
-                    </div>
-                  </div>
-                  {expandedSections.images ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </div>
-              </CardHeader>
-              {expandedSections.images && analysis.image_analysis && (
-                <CardContent className="pt-0">
-                  <div className="grid sm:grid-cols-3 gap-4 mb-4">
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-foreground">{analysis.image_analysis.total_images}</p>
-                      <p className="text-xs text-muted-foreground">Total Images</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-foreground">{analysis.image_analysis.total_size_kb}KB</p>
-                      <p className="text-xs text-muted-foreground">Total Image Size</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-emerald-400">{analysis.image_analysis.potential_savings_kb}KB</p>
-                      <p className="text-xs text-muted-foreground">Potential Savings</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Sparkles className="w-4 h-4 text-purple-400" />
-                      <p className="text-sm text-purple-400 font-medium">Image Optimization Tips:</p>
-                    </div>
-                    <ul className="space-y-2">
-                      {analysis.image_analysis.recommendations?.map((rec, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <ArrowRight className="w-4 h-4 text-purple-400 mt-0.5 flex-shrink-0" />
-                          {rec}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              )}
-            </Card>
-
-            {/* Resource Analysis */}
-            <Card className="bg-card border-border">
-              <CardHeader 
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => toggleSection('resources')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                      <FileCode className="w-5 h-5 text-emerald-400" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Resource Analysis</CardTitle>
-                      <CardDescription>CSS, JavaScript, and third-party resources</CardDescription>
-                    </div>
-                  </div>
-                  {expandedSections.resources ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-                </div>
-              </CardHeader>
-              {expandedSections.resources && analysis.resource_analysis && (
-                <CardContent className="pt-0">
-                  <div className="grid sm:grid-cols-4 gap-4">
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-foreground">{analysis.resource_analysis.css_files}</p>
-                      <p className="text-xs text-muted-foreground">CSS Files</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-foreground">{analysis.resource_analysis.js_files}</p>
-                      <p className="text-xs text-muted-foreground">JS Files</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className="text-2xl font-bold text-foreground">{analysis.resource_analysis.total_requests}</p>
-                      <p className="text-xs text-muted-foreground">Total Requests</p>
-                    </div>
-                    <div className="p-4 rounded-lg bg-muted/50 border border-border text-center">
-                      <p className={`text-2xl font-bold ${analysis.resource_analysis.has_compression ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {analysis.resource_analysis.has_compression ? 'Yes' : 'No'}
+                      <h3 className="font-semibold text-foreground">Performance Fixes Ready</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {fixes.length} optimizations for {serverType}
                       </p>
-                      <p className="text-xs text-muted-foreground">Compression</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-background/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-cyan-400">{fixes.length}</div>
+                      <div className="text-sm text-muted-foreground">Total Fixes</div>
+                    </div>
+                    <div className="bg-background/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-emerald-400">40-60%</div>
+                      <div className="text-sm text-muted-foreground">Est. Speed Boost</div>
+                    </div>
+                    <div className="bg-background/50 rounded-lg p-4 text-center">
+                      <div className="text-2xl font-bold text-yellow-400">-500ms</div>
+                      <div className="text-sm text-muted-foreground">Est. Load Time</div>
                     </div>
                   </div>
                 </CardContent>
-              )}
-            </Card>
-          </div>
-        )}
-
-        {/* Features when no analysis */}
-        {!analysis && !loading && (
-          <div className="grid md:grid-cols-3 gap-6 mt-12">
-            <Card className="bg-card border-border">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-cyan-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Clock className="w-6 h-6 text-cyan-400" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Measure Speed</h3>
-                <p className="text-sm text-muted-foreground">Analyze load time, TTFB, and Core Web Vitals metrics.</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-                  <Image className="w-6 h-6 text-purple-400" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Optimize Assets</h3>
-                <p className="text-sm text-muted-foreground">Get image compression and resource optimization tips.</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border">
-              <CardContent className="p-6 text-center">
-                <div className="w-12 h-12 rounded-lg bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="w-6 h-6 text-emerald-400" />
-                </div>
-                <h3 className="font-semibold text-foreground mb-2">Improve Scores</h3>
-                <p className="text-sm text-muted-foreground">AI recommendations to boost your performance score.</p>
-              </CardContent>
-            </Card>
+              </Card>
+            )}
           </div>
         )}
       </div>
