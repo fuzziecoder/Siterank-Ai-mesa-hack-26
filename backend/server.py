@@ -559,6 +559,27 @@ async def speed_analyze_endpoint(
         raise HTTPException(status_code=500, detail=f"Speed analysis failed: {str(e)}")
 
 
+# ==================== Content Analysis ====================
+
+@api_router.post("/content/analyze")
+async def content_analyze_endpoint(
+    request: SEOAnalyzeRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Comprehensive content analysis with AI enhancement suggestions"""
+    if not request.url:
+        raise HTTPException(status_code=400, detail="URL is required")
+    
+    try:
+        result = await analyze_content(request.url)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Content analysis failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Content analysis failed: {str(e)}")
+
+
 # ==================== Competitor Detection ====================
 
 @api_router.post("/competitors/detect", response_model=CompetitorDetectResponse)
