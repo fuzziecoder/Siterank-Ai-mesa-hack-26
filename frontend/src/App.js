@@ -66,25 +66,20 @@ function AppRoutes() {
   
   return (
     <>
-      {isAuthenticated && <Navbar />}
+      {/* Always show Navbar */}
+      <Navbar />
       <Routes>
         {/* Public Routes */}
         <Route 
           path="/" 
           element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : (
-              <>
-                <Navbar />
-                <LandingPage />
-              </>
-            )
+            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />
           } 
         />
         <Route 
           path="/login" 
           element={
             <PublicRoute>
-              <Navbar />
               <LoginPage />
             </PublicRoute>
           } 
@@ -93,7 +88,6 @@ function AppRoutes() {
           path="/register" 
           element={
             <PublicRoute>
-              <Navbar />
               <RegisterPage />
             </PublicRoute>
           } 
@@ -133,20 +127,20 @@ function AppRoutes() {
           } 
         />
         
-        {/* Feature Pages (Public with Navbar) */}
-        <Route path="/features/seo" element={<><Navbar /><SEOAnalysisPage /></>} />
-        <Route path="/features/speed" element={<><Navbar /><SpeedMetricsPage /></>} />
-        <Route path="/features/content" element={<><Navbar /><ContentScorePage /></>} />
+        {/* Feature Pages (Public) */}
+        <Route path="/features/seo" element={<SEOAnalysisPage />} />
+        <Route path="/features/speed" element={<SpeedMetricsPage />} />
+        <Route path="/features/content" element={<ContentScorePage />} />
         
-        {/* Solution Pages (Public with Navbar) */}
-        <Route path="/solutions/marketers" element={<><Navbar /><ForMarketersPage /></>} />
-        <Route path="/solutions/agencies" element={<><Navbar /><ForAgenciesPage /></>} />
-        <Route path="/solutions/enterprise" element={<><Navbar /><ForEnterprisePage /></>} />
+        {/* Solution Pages (Public) */}
+        <Route path="/solutions/marketers" element={<ForMarketersPage />} />
+        <Route path="/solutions/agencies" element={<ForAgenciesPage />} />
+        <Route path="/solutions/enterprise" element={<ForEnterprisePage />} />
         
-        {/* Resource Pages (Public with Navbar) */}
-        <Route path="/blog" element={<><Navbar /><BlogPage /></>} />
-        <Route path="/docs" element={<><Navbar /><DocumentationPage /></>} />
-        <Route path="/support" element={<><Navbar /><SupportPage /></>} />
+        {/* Resource Pages (Public) */}
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/docs" element={<DocumentationPage />} />
+        <Route path="/support" element={<SupportPage />} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
