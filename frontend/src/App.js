@@ -133,6 +133,21 @@ function AppRoutes() {
           } 
         />
         
+        {/* Feature Pages (Public with Navbar) */}
+        <Route path="/features/seo" element={<><Navbar /><SEOAnalysisPage /></>} />
+        <Route path="/features/speed" element={<><Navbar /><SpeedMetricsPage /></>} />
+        <Route path="/features/content" element={<><Navbar /><ContentScorePage /></>} />
+        
+        {/* Solution Pages (Public with Navbar) */}
+        <Route path="/solutions/marketers" element={<><Navbar /><ForMarketersPage /></>} />
+        <Route path="/solutions/agencies" element={<><Navbar /><ForAgenciesPage /></>} />
+        <Route path="/solutions/enterprise" element={<><Navbar /><ForEnterprisePage /></>} />
+        
+        {/* Resource Pages (Public with Navbar) */}
+        <Route path="/blog" element={<><Navbar /><BlogPage /></>} />
+        <Route path="/docs" element={<><Navbar /><DocumentationPage /></>} />
+        <Route path="/support" element={<><Navbar /><SupportPage /></>} />
+        
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
