@@ -4,6 +4,7 @@ from urllib.parse import urlparse, urljoin
 import re
 import time
 import logging
+import socket
 from typing import Dict, Any, Optional, Tuple
 
 logger = logging.getLogger(__name__)
@@ -13,37 +14,126 @@ class WebsiteScraper:
     """Scrapes website data for analysis"""
     
     def __init__(self, url: str, timeout: int = 15):
+        self.original_url = url
         self.url = self._normalize_url(url)
         self.timeout = timeout
         self.soup = None
         self.response = None
         self.load_time = 0
+        self.error_message = None
         
     def _normalize_url(self, url: str) -> str:
         """Ensure URL has proper scheme"""
+        url = url.strip()
         if not url.startswith(('http://', 'https://')):
             url = 'https://' + url
         return url.rstrip('/')
     
-    def fetch(self) -> bool:
-        """Fetch the webpage and measure load time"""
+    def _check_dns(self, hostname: str) -> bool:
+        """Check if hostname resolves"""
         try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
-            start_time = time.time()
-            self.response = requests.get(self.url, headers=headers, timeout=self.timeout, allow_redirects=True)
-            self.load_time = time.time() - start_time
-            
-            if self.response.status_code == 200:
-                self.soup = BeautifulSoup(self.response.text, 'html.parser')
-                return True
-            else:
-                logger.warning(f"Failed to fetch {self.url}: Status {self.response.status_code}")
-                return False
-        except Exception as e:
-            logger.error(f"Error fetching {self.url}: {str(e)}")
+            socket.gethostbyname(hostname)
+            return True
+        except socket.gaierror:
             return False
+    
+    def _get_url_variants(self) -> list:
+        """Generate URL variants to try"""
+        parsed = urlparse(self.url)
+        hostname = parsed.netloc
+        
+        variants = []
+        
+        # Try original URL first
+        variants.append(self.url)
+        
+        # Try with www if not present
+        if not hostname.startswith('www.'):
+            www_url = f"{parsed.scheme}://www.{hostname}{parsed.path}"
+            variants.append(www_url)
+        else:
+            # Try without www if present
+            no_www_url = f"{parsed.scheme}://{hostname[4:]}{parsed.path}"
+            variants.append(no_www_url)
+        
+        # Try http if https fails
+        if parsed.scheme == 'https':
+            http_url = f"http://{hostname}{parsed.path}"
+            variants.append(http_url)
+            if not hostname.startswith('www.'):
+                variants.append(f"http://www.{hostname}{parsed.path}")
+        
+        return variants
+    
+    def fetch(self) -> bool:
+        """Fetch the webpage and measure load time, trying multiple URL variants"""
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Connection': 'keep-alive',
+        }
+        
+        variants = self._get_url_variants()
+        last_error = None
+        
+        for url_variant in variants:
+            try:
+                logger.info(f"Trying to fetch: {url_variant}")
+                start_time = time.time()
+                self.response = requests.get(
+                    url_variant, 
+                    headers=headers, 
+                    timeout=self.timeout, 
+                    allow_redirects=True,
+                    verify=True
+                )
+                self.load_time = time.time() - start_time
+                
+                if self.response.status_code == 200:
+                    self.soup = BeautifulSoup(self.response.text, 'html.parser')
+                    self.url = url_variant  # Update to successful URL
+                    logger.info(f"Successfully fetched {url_variant}")
+                    return True
+                elif self.response.status_code in [403, 429]:
+                    last_error = f"Access denied (HTTP {self.response.status_code}). The website may be blocking automated requests."
+                else:
+                    last_error = f"HTTP {self.response.status_code}"
+                    
+            except requests.exceptions.SSLError as e:
+                last_error = "SSL certificate error"
+                logger.warning(f"SSL error for {url_variant}: {e}")
+                # Try without SSL verification as last resort
+                try:
+                    self.response = requests.get(url_variant, headers=headers, timeout=self.timeout, allow_redirects=True, verify=False)
+                    if self.response.status_code == 200:
+                        self.soup = BeautifulSoup(self.response.text, 'html.parser')
+                        self.url = url_variant
+                        return True
+                except:
+                    pass
+                    
+            except requests.exceptions.ConnectionError as e:
+                error_str = str(e)
+                if "Name or service not known" in error_str or "NameResolutionError" in error_str:
+                    last_error = "Domain not found. Please check the URL is correct and the website is online."
+                elif "Connection refused" in error_str:
+                    last_error = "Connection refused. The website server may be down."
+                else:
+                    last_error = "Unable to connect to the website."
+                logger.warning(f"Connection error for {url_variant}: {e}")
+                    
+            except requests.exceptions.Timeout:
+                last_error = "Request timed out. The website may be slow or unreachable."
+                logger.warning(f"Timeout for {url_variant}")
+                
+            except Exception as e:
+                last_error = f"Error: {str(e)[:100]}"
+                logger.error(f"Error fetching {url_variant}: {str(e)}")
+        
+        self.error_message = last_error or "Failed to fetch website"
+        logger.error(f"All URL variants failed for {self.original_url}. Last error: {self.error_message}")
+        return False
     
     def get_seo_data(self) -> Dict[str, Any]:
         """Extract SEO-related data"""
