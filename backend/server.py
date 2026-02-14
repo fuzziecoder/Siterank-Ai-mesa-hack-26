@@ -18,7 +18,7 @@ from models import (
     AnalysisCreate, AnalysisResult, AnalysisResponse, AnalysisSummary,
     WebsiteScore, CompetitorData
 )
-from auth import hash_password, verify_password, create_access_token, get_current_user
+from auth import hash_password, verify_password, create_access_token, get_current_user, get_optional_user
 from scraper import scrape_website
 from analyzer import analyze_scraped_data, compare_all
 from llm_engine import generate_ai_suggestions
