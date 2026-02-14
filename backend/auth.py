@@ -65,3 +65,21 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         "user_id": payload.get("sub"),
         "email": payload.get("email")
     }
+
+
+# Optional security - doesn't raise if no token provided
+optional_security = HTTPBearer(auto_error=False)
+
+async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security)) -> Optional[dict]:
+    """Get current user from JWT token if provided, otherwise return None"""
+    if credentials is None:
+        return None
+    try:
+        token = credentials.credentials
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return {
+            "user_id": payload.get("sub"),
+            "email": payload.get("email")
+        }
+    except:
+        return None
