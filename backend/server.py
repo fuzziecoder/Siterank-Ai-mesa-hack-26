@@ -545,7 +545,7 @@ async def seo_analyze_endpoint(
 @api_router.post("/speed/analyze")
 async def speed_analyze_endpoint(
     request: SEOAnalyzeRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: Optional[dict] = Depends(get_optional_user)
 ):
     """Comprehensive speed analysis with optimization recommendations"""
     if not request.url:
