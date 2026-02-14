@@ -798,6 +798,10 @@ from auto_fix_engine import (
     generate_seo_fixes, generate_speed_fixes, generate_content_fixes
 )
 
+from implementation_engine import (
+    ImplementRequest, ImplementResponse, implement_fix
+)
+
 @api_router.post("/fix/seo", response_model=FixResponse)
 async def fix_seo_issues(request: SEOFixRequest):
     """Generate AI-powered SEO fixes for detected issues"""
@@ -829,6 +833,19 @@ async def fix_content_issues(request: ContentFixRequest):
     except Exception as e:
         logger.error(f"Content fix error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to generate content fixes: {str(e)}")
+
+
+# ==================== One-Click Implementation ====================
+
+@api_router.post("/implement/{fix_type}")
+async def implement_fix_endpoint(fix_type: str, request: ImplementRequest):
+    """One-click implementation - generates complete, production-ready code fixes"""
+    try:
+        result = await implement_fix(fix_type, request)
+        return result
+    except Exception as e:
+        logger.error(f"Implementation error for {fix_type}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate implementation: {str(e)}")
 
 
 # ==================== Download All Fixes as ZIP ====================
