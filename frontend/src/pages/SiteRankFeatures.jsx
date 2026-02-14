@@ -673,32 +673,32 @@ export default function SiteRankFeatures() {
       <div style={{ minHeight:"100vh",background:"var(--bg)" }}>
 
         {/* — Top Nav — */}
-        <div style={{ borderBottom:"1px solid var(--bd)",padding:"0 20px",background:"var(--s1)",position:"sticky",top:0,zIndex:100 }}>
-          <div style={{ maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",gap:12,height:50 }}>
+        <div style={{ borderBottom:"1px solid var(--bd)",padding:"0 12px",background:"var(--s1)",position:"sticky",top:0,zIndex:100 }}>
+          <div className="srf-mobile-wrap srf-mobile-gap" style={{ maxWidth:920,margin:"0 auto",display:"flex",alignItems:"center",gap:12,minHeight:50,padding:"8px 0" }}>
             <button onClick={()=>setStep("role")} data-testid="new-analysis-btn" style={{ background:"none",border:"none",color:"var(--text2)",fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.07em",flexShrink:0 }}>← NEW</button>
-            <div style={{ width:1,height:18,background:"var(--bd)" }}/>
-            <div style={{ padding:"4px 10px",background:"var(--s3)",border:"1px solid var(--bd)",borderRadius:4,fontSize:10,color:"var(--cyan)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:280 }}>{url}</div>
+            <div className="srf-hide-mobile" style={{ width:1,height:18,background:"var(--bd)" }}/>
+            <div style={{ padding:"4px 10px",background:"var(--s3)",border:"1px solid var(--bd)",borderRadius:4,fontSize:"clamp(9px, 2vw, 10px)",color:"var(--cyan)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"clamp(120px, 40vw, 280px)",flex:"1 1 auto",minWidth:0 }}>{url}</div>
             {selectedRole && (
-              <div style={{ fontSize:8,padding:"3px 8px",background:`${selectedRole.color}10`,color:selectedRole.color,border:`1px solid ${selectedRole.color}25`,borderRadius:3,letterSpacing:"0.07em",fontWeight:700,flexShrink:0 }}>
+              <div style={{ fontSize:8,padding:"3px 8px",background:`${selectedRole.color}10`,color:selectedRole.color,border:`1px solid ${selectedRole.color}25`,borderRadius:3,letterSpacing:"0.07em",fontWeight:700,flexShrink:0,whiteSpace:"nowrap" }}>
                 {selectedRole.icon} {role.toUpperCase()}
               </div>
             )}
             {role === "agency" && Object.keys(analysisData).length > 0 && (
-              <button onClick={downloadPDFReport} data-testid="export-report-btn" style={{ marginLeft:"auto",padding:"6px 12px",background:"var(--s3)",color:"var(--text2)",border:"1px solid var(--bd2)",borderRadius:5,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.05em",flexShrink:0 }}>⬇ EXPORT REPORT</button>
+              <button onClick={downloadPDFReport} data-testid="export-report-btn" style={{ marginLeft:"auto",padding:"6px 12px",background:"var(--s3)",color:"var(--text2)",border:"1px solid var(--bd2)",borderRadius:5,fontSize:9,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.05em",flexShrink:0,whiteSpace:"nowrap" }}>⬇ EXPORT</button>
             )}
           </div>
         </div>
 
         {/* — Tabs — */}
-        <div style={{ borderBottom:"1px solid var(--bd)",background:"var(--s1)" }}>
-          <div style={{ maxWidth:920,margin:"0 auto",display:"flex" }}>
+        <div className="srf-tabs-scroll" style={{ borderBottom:"1px solid var(--bd)",background:"var(--s1)" }}>
+          <div style={{ maxWidth:920,margin:"0 auto",display:"flex",minWidth:"max-content" }}>
             {TABS.map(tab => {
               const d = analysisData[tab.id];
               const active = activeTab === tab.id;
               return (
                 <button key={tab.id} className="srf-tab-btn" onClick={() => switchTab(tab.id)} data-testid={`tab-${tab.id}`}
-                  style={{ padding:"13px 18px",background:"none",border:"none",borderBottom:`2px solid ${active?tab.color:"transparent"}`,color:active?tab.color:"var(--text2)",fontSize:10,cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.06em",fontWeight:active?600:400,display:"flex",alignItems:"center",gap:7,transition:"all 0.2s" }}>
-                  {tab.icon} {tab.label}
+                  style={{ padding:"13px clamp(10px, 3vw, 18px)",background:"none",border:"none",borderBottom:`2px solid ${active?tab.color:"transparent"}`,color:active?tab.color:"var(--text2)",fontSize:"clamp(9px, 2vw, 10px)",cursor:"pointer",fontFamily:"var(--mono)",letterSpacing:"0.06em",fontWeight:active?600:400,display:"flex",alignItems:"center",gap:"clamp(4px, 1vw, 7px)",transition:"all 0.2s",whiteSpace:"nowrap" }}>
+                  {tab.icon} <span className="srf-hide-mobile">{tab.label}</span><span className="srf-show-mobile" style={{ display:"none" }}>{tab.id.toUpperCase()}</span>
                   {loading[tab.id] && <Spin color={tab.color} size={10}/>}
                   {d && !loading[tab.id] && (
                     <span style={{ fontSize:9,padding:"1px 5px",borderRadius:3,background:`${scoreColor(d.score)}18`,color:scoreColor(d.score),fontWeight:700 }}>{d.score}</span>
@@ -710,19 +710,19 @@ export default function SiteRankFeatures() {
         </div>
 
         {/* — Main Content — */}
-        <div style={{ maxWidth:920,margin:"0 auto",padding:"22px 20px 60px" }}>
+        <div style={{ maxWidth:920,margin:"0 auto",padding:"clamp(14px, 4vw, 22px) clamp(12px, 3vw, 20px) 60px" }}>
 
           {/* Loading */}
           {isLoading && (
-            <div style={{ padding:20,background:"var(--s1)",border:`1px solid ${activeTabCfg.color}25`,borderRadius:10,animation:"srfFadeUp 0.3s ease" }} data-testid="loading-indicator">
-              <div style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
+            <div style={{ padding:"clamp(14px, 3vw, 20px)",background:"var(--s1)",border:`1px solid ${activeTabCfg.color}25`,borderRadius:10,animation:"srfFadeUp 0.3s ease" }} data-testid="loading-indicator">
+              <div className="srf-mobile-wrap" style={{ display:"flex",alignItems:"center",gap:10,marginBottom:14 }}>
                 <Spin color={activeTabCfg.color}/>
-                <span style={{ fontSize:10,color:activeTabCfg.color,letterSpacing:"0.07em" }}>ANALYZING {url.replace(/https?:\/\//,"").split("/")[0]}...</span>
+                <span style={{ fontSize:"clamp(9px, 2vw, 10px)",color:activeTabCfg.color,letterSpacing:"0.07em",wordBreak:"break-word" }}>ANALYZING {url.replace(/https?:\/\//,"").split("/")[0]}...</span>
               </div>
               <div style={{ display:"flex",flexDirection:"column",gap:5 }}>
                 {logLines.map((l,i) => (
-                  <div key={i} style={{ fontSize:10,color:"var(--text2)",display:"flex",gap:8,animation:"srfSlideIn 0.25s ease" }}>
-                    <span style={{ color:activeTabCfg.color,flexShrink:0 }}>→</span>{l}
+                  <div key={i} style={{ fontSize:"clamp(9px, 2vw, 10px)",color:"var(--text2)",display:"flex",gap:8,animation:"srfSlideIn 0.25s ease" }}>
+                    <span style={{ color:activeTabCfg.color,flexShrink:0 }}>→</span><span style={{ wordBreak:"break-word" }}>{l}</span>
                   </div>
                 ))}
               </div>
@@ -734,10 +734,10 @@ export default function SiteRankFeatures() {
             <div style={{ display:"flex",flexDirection:"column",gap:14,animation:"srfFadeUp 0.4s ease" }} data-testid="analysis-results">
 
               {/* — Score Overview — */}
-              <div style={{ display:"flex",gap:16,padding:20,background:"var(--s1)",border:"1px solid var(--bd)",borderRadius:10,alignItems:"center" }}>
-                <Ring score={currentData.score}/>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:10,color:"var(--text2)",marginBottom:10 }}>
+              <div className="srf-mobile-col srf-mobile-xs-center" style={{ display:"flex",gap:"clamp(12px, 3vw, 16px)",padding:"clamp(14px, 3vw, 20px)",background:"var(--s1)",border:"1px solid var(--bd)",borderRadius:10,alignItems:"center" }}>
+                <Ring score={currentData.score} size={typeof window !== 'undefined' && window.innerWidth < 480 ? 80 : 96}/>
+                <div style={{ flex:1,width:"100%" }}>
+                  <div style={{ fontSize:"clamp(9px, 2vw, 10px)",color:"var(--text2)",marginBottom:10,wordBreak:"break-word" }}>
                     {url.replace(/https?:\/\//,"")} — <span style={{ color:activeTabCfg.color }}>{activeTabCfg.label}</span>
                   </div>
                   {currentData.sub_scores && Object.entries(currentData.sub_scores).map(([k,v],i) => (
