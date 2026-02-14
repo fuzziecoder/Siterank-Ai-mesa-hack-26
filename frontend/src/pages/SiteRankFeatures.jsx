@@ -602,37 +602,39 @@ export default function SiteRankFeatures() {
   if (step === "url") return (
     <div className="srf-container">
       <style>{css}</style>
-      <div style={{ minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24 }}>
+      <div style={{ minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"24px 16px" }}>
         <div style={{ position:"fixed",inset:0,backgroundImage:`linear-gradient(var(--bd) 1px,transparent 1px),linear-gradient(90deg,var(--bd) 1px,transparent 1px)`,backgroundSize:"44px 44px",opacity:0.25,pointerEvents:"none" }}/>
 
         <div style={{ maxWidth:500,width:"100%",animation:"srfFadeUp 0.4s ease",position:"relative" }}>
           <button onClick={() => setStep("role")} data-testid="back-to-role-btn" style={{ background:"none",border:"none",color:"var(--text2)",fontSize:10,cursor:"pointer",marginBottom:24,padding:0,fontFamily:"var(--mono)",display:"flex",alignItems:"center",gap:6,letterSpacing:"0.04em" }}>← BACK</button>
 
           {/* Role banner */}
-          <div style={{ padding:"10px 14px",marginBottom:28,background:`${selectedRole.color}08`,border:`1px solid ${selectedRole.color}25`,borderRadius:8,display:"flex",alignItems:"center",gap:10 }}>
+          <div style={{ padding:"10px 14px",marginBottom:"clamp(18px, 4vw, 28px)",background:`${selectedRole.color}08`,border:`1px solid ${selectedRole.color}25`,borderRadius:8,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap" }}>
             <span style={{ fontSize:20 }}>{selectedRole.icon}</span>
-            <div>
-              <div style={{ fontSize:11,fontWeight:600,color:selectedRole.color,marginBottom:2 }}>{selectedRole.title}</div>
+            <div style={{ flex:1,minWidth:150 }}>
+              <div style={{ fontSize:"clamp(10px, 2.5vw, 11px)",fontWeight:600,color:selectedRole.color,marginBottom:2 }}>{selectedRole.title}</div>
               <div style={{ fontSize:9,color:"var(--text2)",letterSpacing:"0.05em" }}>{selectedRole.badge}</div>
             </div>
           </div>
 
-          <h2 style={{ fontFamily:"var(--display)",fontSize:24,fontWeight:800,color:"var(--text)",marginBottom:8 }}>Enter the website URL</h2>
-          <p style={{ fontSize:11,color:"var(--text2)",marginBottom:22,lineHeight:1.6 }}>
+          <h2 style={{ fontFamily:"var(--display)",fontSize:"clamp(20px, 5vw, 24px)",fontWeight:800,color:"var(--text)",marginBottom:8 }}>Enter the website URL</h2>
+          <p style={{ fontSize:"clamp(10px, 2.5vw, 11px)",color:"var(--text2)",marginBottom:22,lineHeight:1.6 }}>
             We'll run SEO, Speed, and Content analysis.<br/>All data comes from publicly accessible sources.
           </p>
 
           {/* URL Input */}
-          <div style={{ display:"flex",gap:8,padding:"6px 6px 6px 14px",background:"var(--s1)",border:`1px solid ${urlFocused ? selectedRole.color+"50" : "var(--bd)"}`,borderRadius:8,transition:"border 0.2s, box-shadow 0.2s",boxShadow:urlFocused ? `0 0 0 3px ${selectedRole.color}0d` : "none" }}>
-            <span style={{ color:"var(--text3)",fontSize:12,display:"flex",alignItems:"center",flexShrink:0 }}>$</span>
-            <input value={urlInput} onChange={e=>setUrlInput(e.target.value)}
-              onKeyDown={e=>e.key==="Enter"&&startAnalysis()}
-              onFocus={()=>setUrlFocused(true)} onBlur={()=>setUrlFocused(false)}
-              placeholder="https://yourwebsite.com" autoFocus
-              data-testid="url-input"
-              style={{ flex:1,background:"none",border:"none",outline:"none",color:"var(--text)",fontSize:12,fontFamily:"var(--mono)" }}/>
+          <div className="srf-mobile-col" style={{ display:"flex",gap:8,padding:"6px 6px 6px 14px",background:"var(--s1)",border:`1px solid ${urlFocused ? selectedRole.color+"50" : "var(--bd)"}`,borderRadius:8,transition:"border 0.2s, box-shadow 0.2s",boxShadow:urlFocused ? `0 0 0 3px ${selectedRole.color}0d` : "none" }}>
+            <div style={{ display:"flex",alignItems:"center",gap:8,flex:1,minWidth:0 }}>
+              <span style={{ color:"var(--text3)",fontSize:12,display:"flex",alignItems:"center",flexShrink:0 }}>$</span>
+              <input value={urlInput} onChange={e=>setUrlInput(e.target.value)}
+                onKeyDown={e=>e.key==="Enter"&&startAnalysis()}
+                onFocus={()=>setUrlFocused(true)} onBlur={()=>setUrlFocused(false)}
+                placeholder="yourwebsite.com" autoFocus
+                data-testid="url-input"
+                style={{ flex:1,background:"none",border:"none",outline:"none",color:"var(--text)",fontSize:"clamp(12px, 3vw, 14px)",fontFamily:"var(--mono)",minWidth:0,width:"100%" }}/>
+            </div>
             <button onClick={startAnalysis} disabled={!urlInput.trim()} data-testid="analyze-btn"
-              style={{ padding:"9px 16px",background:urlInput.trim()?selectedRole.color:"var(--s3)",color:urlInput.trim()?"var(--bg)":"var(--text3)",border:"none",borderRadius:6,fontSize:10,fontWeight:700,cursor:urlInput.trim()?"pointer":"not-allowed",fontFamily:"var(--mono)",letterSpacing:"0.06em",transition:"all 0.2s",whiteSpace:"nowrap" }}>
+              style={{ padding:"10px 16px",background:urlInput.trim()?selectedRole.color:"var(--s3)",color:urlInput.trim()?"var(--bg)":"var(--text3)",border:"none",borderRadius:6,fontSize:11,fontWeight:700,cursor:urlInput.trim()?"pointer":"not-allowed",fontFamily:"var(--mono)",letterSpacing:"0.06em",transition:"all 0.2s",whiteSpace:"nowrap",width:"100%",maxWidth:"none" }}>
               ANALYZE →
             </button>
           </div>
@@ -641,14 +643,14 @@ export default function SiteRankFeatures() {
           <div style={{ marginTop:20,padding:"14px 16px",background:"var(--s1)",border:"1px solid var(--bd)",borderRadius:8 }}>
             <div style={{ fontSize:9,color:"var(--text3)",letterSpacing:"0.08em",marginBottom:10 }}>WHAT WE ANALYZE</div>
             {[
-              { icon:"🔍", label:"SEO", detail:"Meta tags, headings, schema, sitemap, canonicals" },
-              { icon:"⚡", label:"Speed", detail:"Core Web Vitals, load time, caching, scripts" },
-              { icon:"✏️", label:"Content", detail:"Word count, readability, keywords, E-E-A-T" },
+              { icon:"🔍", label:"SEO", detail:"Meta tags, headings, schema, sitemap" },
+              { icon:"⚡", label:"Speed", detail:"Core Web Vitals, load time, caching" },
+              { icon:"✏️", label:"Content", detail:"Word count, readability, keywords" },
             ].map(item => (
-              <div key={item.label} style={{ display:"flex",alignItems:"center",gap:10,marginBottom:7 }}>
+              <div key={item.label} className="srf-mobile-wrap" style={{ display:"flex",alignItems:"center",gap:"clamp(6px, 2vw, 10px)",marginBottom:7 }}>
                 <span style={{ fontSize:13 }}>{item.icon}</span>
-                <span style={{ fontSize:10,color:"var(--cyan)",fontWeight:600,minWidth:50 }}>{item.label}</span>
-                <span style={{ fontSize:10,color:"var(--text2)" }}>{item.detail}</span>
+                <span style={{ fontSize:10,color:"var(--cyan)",fontWeight:600,minWidth:45 }}>{item.label}</span>
+                <span style={{ fontSize:"clamp(9px, 2vw, 10px)",color:"var(--text2)" }}>{item.detail}</span>
               </div>
             ))}
           </div>
