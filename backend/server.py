@@ -566,7 +566,7 @@ async def speed_analyze_endpoint(
 @api_router.post("/content/analyze")
 async def content_analyze_endpoint(
     request: SEOAnalyzeRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: Optional[dict] = Depends(get_optional_user)
 ):
     """Comprehensive content analysis with AI enhancement suggestions"""
     if not request.url:
