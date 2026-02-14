@@ -524,7 +524,7 @@ async def health_check():
 @api_router.post("/seo/analyze")
 async def seo_analyze_endpoint(
     request: SEOAnalyzeRequest,
-    current_user: dict = Depends(get_current_user)
+    current_user: Optional[dict] = Depends(get_optional_user)
 ):
     """Comprehensive SEO analysis with AI-generated fixes"""
     if not request.url:
