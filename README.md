@@ -794,5 +794,5 @@ This project is proprietary software. All rights reserved.
 ---
 
 <p align="center">
-  Built with ❤️ by the SITERANK AI Team
+  Built with ❤️ by the Team Flexiroasters
 </p>
