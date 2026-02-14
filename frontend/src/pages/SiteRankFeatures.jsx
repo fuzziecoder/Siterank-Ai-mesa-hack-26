@@ -404,7 +404,7 @@ export default function SiteRankFeatures() {
     const token = getAuthToken();
     
     try {
-      let result;
+      let fixesResult = [];
       try {
         const res = await fetch(`${API_URL}/api/fix/${type}`, {
           method: "POST", 
@@ -419,9 +419,28 @@ export default function SiteRankFeatures() {
             current_data: data
           })
         });
-        if (!res.ok) throw new Error();
-        result = await res.json();
-        setFixes(f => ({ ...f, [type]: result.fixes || [] }));
+        if (!res.ok) throw new Error(`API returned ${res.status}`);
+        const result = await res.json();
+        
+        // Transform API response format to match UI component format
+        fixesResult = (result.fixes || []).map(fix => ({
+          title: fix.issue || fix.title || "Fix",
+          description: fix.placement || fix.section || "",
+          impact: (fix.impact && fix.impact.includes("CTR")) ? "HIGH" : 
+                  (fix.impact && fix.impact.includes("20")) ? "MED" : "HIGH",
+          status: "ready",
+          explanation: fix.impact || "",
+          code: fix.fixed_code || fix.code || "",
+          lang: fix.config_type || (fix.fixed_code?.includes("<script") ? "json" : "html"),
+          instructions: fix.instructions || "",
+          cms_note: fix.effort === "copy-paste" ? "This is a simple copy-paste fix" : fix.effort || ""
+        }));
+        
+        if (fixesResult.length > 0) {
+          setFixes(f => ({ ...f, [type]: fixesResult }));
+        } else {
+          throw new Error("No fixes returned");
+        }
       } catch (err) {
         console.log('Using demo fixes for', type, err);
         await new Promise(r => setTimeout(r, 1800));
