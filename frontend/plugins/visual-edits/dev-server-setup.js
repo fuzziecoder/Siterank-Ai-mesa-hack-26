@@ -6,7 +6,7 @@ const express = require("express");
 const { execSync } = require("child_process");
 
 // ───────────────────────────────────────────────────────────────────────────────
-// Variable Edit Handler - For editing dynamic content from traceable sources
+// Variable Edit Handler - For editing dynamic content from traceable sources 
 // ───────────────────────────────────────────────────────────────────────────────
 
 const EXTENSIONS = [".tsx", ".ts", ".jsx", ".js"];
