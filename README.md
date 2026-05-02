@@ -8,7 +8,7 @@
   <strong>Transform your website from underperformer to industry leader with AI-powered competitive intelligence</strong>
 </p>
 
-<p align="center">
+<p align="center"> 
   <!-- Hackathon -->
   <img src="https://img.shields.io/badge/Emergent%20Mesa-Hackathon%202026-6C3082?style=for-the-badge&logo=lightning&logoColor=white" alt="Hackathon" />
   <img src="https://img.shields.io/badge/Team-Flexiroasters-FF6B35?style=for-the-badge&logo=fire&logoColor=white" alt="Team" />
